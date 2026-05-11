@@ -41,3 +41,5 @@ CREATE TABLE notifications (
     is_read TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+ALTER TABLE ranking_results
+ADD COLUMN program_id INT NOT NULL;

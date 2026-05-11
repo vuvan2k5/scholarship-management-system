@@ -1,53 +1,90 @@
-<?php
-require_once "../../config/database.php";
+﻿<?php
 
-$id = $_GET['id'];
+include '../../config/db.php';
+include '../../includes/header.php';
 
-$sql = "SELECT * FROM notifications WHERE id = $id";
-$result = mysqli_query($conn, $sql);
-$row = mysqli_fetch_assoc($result);
+$pageTitle = 'Edit Notification';
+$pdo = getDB();
+$error = '';
+
+$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$stmt = $pdo->prepare('SELECT * FROM notifications WHERE id = ?');
+$stmt->execute([$id]);
+$notification = $stmt->fetch();
+
+if (!$notification) {
+    echo '<div class="alert alert-danger">Notification not found.</div>';
+    include '../../includes/footer.php';
+    exit;
+}
+
+$users = $pdo->query('SELECT id, full_name FROM users ORDER BY full_name')->fetchAll();
 
 if (isset($_POST['submit'])) {
-    $user_id = $_POST['user_id'];
-    $title = $_POST['title'];
-    $message = $_POST['message'];
-    $is_read = $_POST['is_read'];
+    $userId = trim($_POST['user_id']);
+    $title = trim($_POST['title']);
+    $message = trim($_POST['message']);
+    $type = trim($_POST['type']);
+    $isRead = isset($_POST['is_read']) ? 1 : 0;
 
-    $update = "UPDATE notifications 
-               SET user_id = '$user_id',
-                   title = '$title',
-                   message = '$message',
-                   is_read = '$is_read'
-               WHERE id = $id";
-
-    if (mysqli_query($conn, $update)) {
-        header("Location: index.php");
-        exit();
+    if ($userId === '' || $title === '' || $message === '') {
+        $error = 'User, title and message are required.';
     } else {
-        echo "Error: " . mysqli_error($conn);
+        $update = $pdo->prepare(
+            'UPDATE notifications SET user_id = ?, title = ?, message = ?, type = ?, is_read = ? WHERE id = ?'
+        );
+        $update->execute([$userId, $title, $message, $type, $isRead, $id]);
+        header('Location: index.php');
+        exit;
     }
 }
 ?>
 
-<h2>Edit Notification</h2>
+<h2 class="mb-4">Edit Notification</h2>
+
+<?php if ($error): ?>
+    <div class="alert alert-danger"><?= $error ?></div>
+<?php endif; ?>
 
 <form method="POST">
-    <label>User ID</label><br>
-    <input type="number" name="user_id" value="<?= $row['user_id'] ?>" required><br><br>
+    <div class="mb-3">
+        <label class="form-label">User</label>
+        <select name="user_id" class="form-control" required>
+            <option value="">Select user</option>
+            <?php foreach ($users as $user): ?>
+                <option value="<?= $user['id'] ?>" <?= $user['id'] == $notification['user_id'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($user['full_name']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
 
-    <label>Title</label><br>
-    <input type="text" name="title" value="<?= $row['title'] ?>" required><br><br>
+    <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input type="text" name="title" value="<?= htmlspecialchars($notification['title']) ?>" class="form-control" required>
+    </div>
 
-    <label>Message</label><br>
-    <textarea name="message" required><?= $row['message'] ?></textarea><br><br>
+    <div class="mb-3">
+        <label class="form-label">Message</label>
+        <textarea name="message" class="form-control" required><?= htmlspecialchars($notification['message']) ?></textarea>
+    </div>
 
-    <label>Is Read</label><br>
-    <select name="is_read">
-        <option value="0" <?= $row['is_read'] == 0 ? 'selected' : '' ?>>No</option>
-        <option value="1" <?= $row['is_read'] == 1 ? 'selected' : '' ?>>Yes</option>
-    </select><br><br>
+    <div class="mb-3">
+        <label class="form-label">Type</label>
+        <select name="type" class="form-control">
+            <option value="info" <?= $notification['type'] === 'info' ? 'selected' : '' ?>>Info</option>
+            <option value="success" <?= $notification['type'] === 'success' ? 'selected' : '' ?>>Success</option>
+            <option value="warning" <?= $notification['type'] === 'warning' ? 'selected' : '' ?>>Warning</option>
+            <option value="error" <?= $notification['type'] === 'error' ? 'selected' : '' ?>>Error</option>
+        </select>
+    </div>
 
-    <button type="submit" name="submit">Update</button>
+    <div class="mb-3 form-check">
+        <input type="checkbox" name="is_read" id="is_read" class="form-check-input" value="1" <?= $notification['is_read'] ? 'checked' : '' ?> >
+        <label class="form-check-label" for="is_read">Mark as read</label>
+    </div>
+
+    <button type="submit" name="submit" class="btn btn-success">Update Notification</button>
 </form>
 
-<a href="index.php">Back</a>
+<?php include '../../includes/footer.php'; ?>

@@ -1,14 +1,15 @@
-<?php
-require_once "../../config/database.php";
+﻿<?php
 
-$id = $_GET['id'];
+include '../../config/db.php';
 
-$sql = "DELETE FROM notifications WHERE id = $id";
+$pdo = getDB();
+$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-if (mysqli_query($conn, $sql)) {
-    header("Location: index.php");
-    exit();
-} else {
-    echo "Error: " . mysqli_error($conn);
+if ($id) {
+    $stmt = $pdo->prepare('DELETE FROM notifications WHERE id = ?');
+    $stmt->execute([$id]);
 }
+
+header('Location: index.php');
+exit;
 ?>

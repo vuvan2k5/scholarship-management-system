@@ -1,43 +1,84 @@
-<?php
-require_once "../../config/database.php";
+﻿<?php
+
+include '../../config/db.php';
+include '../../includes/header.php';
+
+$pageTitle = 'Add Notification';
+$pdo = getDB();
+$error = '';
+$userId = '';
+$title = '';
+$message = '';
+$type = 'info';
+$isRead = 0;
+
+$users = $pdo->query('SELECT id, full_name FROM users ORDER BY full_name')->fetchAll();
 
 if (isset($_POST['submit'])) {
-    $user_id = $_POST['user_id'];
-    $title = $_POST['title'];
-    $message = $_POST['message'];
-    $is_read = $_POST['is_read'];
+    $userId = trim($_POST['user_id']);
+    $title = trim($_POST['title']);
+    $message = trim($_POST['message']);
+    $type = trim($_POST['type']);
+    $isRead = isset($_POST['is_read']) ? 1 : 0;
 
-    $sql = "INSERT INTO notifications (user_id, title, message, is_read)
-            VALUES ('$user_id', '$title', '$message', '$is_read')";
-
-    if (mysqli_query($conn, $sql)) {
-        header("Location: index.php");
-        exit();
+    if ($userId === '' || $title === '' || $message === '') {
+        $error = 'User, title and message are required.';
     } else {
-        echo "Error: " . mysqli_error($conn);
+        $insert = $pdo->prepare(
+            'INSERT INTO notifications (user_id, title, message, type, is_read) VALUES (?, ?, ?, ?, ?)'
+        );
+        $insert->execute([$userId, $title, $message, $type, $isRead]);
+        header('Location: index.php');
+        exit;
     }
 }
 ?>
 
-<h2>Add Notification</h2>
+<h2 class="mb-4">Add Notification</h2>
+
+<?php if ($error): ?>
+    <div class="alert alert-danger"><?= $error ?></div>
+<?php endif; ?>
 
 <form method="POST">
-    <label>User ID</label><br>
-    <input type="number" name="user_id" required><br><br>
+    <div class="mb-3">
+        <label class="form-label">User</label>
+        <select name="user_id" class="form-control" required>
+            <option value="">Select user</option>
+            <?php foreach ($users as $user): ?>
+                <option value="<?= $user['id'] ?>" <?= $user['id'] == $userId ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($user['full_name']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
 
-    <label>Title</label><br>
-    <input type="text" name="title" required><br><br>
+    <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input type="text" name="title" value="<?= htmlspecialchars($title) ?>" class="form-control" required>
+    </div>
 
-    <label>Message</label><br>
-    <textarea name="message" required></textarea><br><br>
+    <div class="mb-3">
+        <label class="form-label">Message</label>
+        <textarea name="message" class="form-control" required><?= htmlspecialchars($message) ?></textarea>
+    </div>
 
-    <label>Is Read</label><br>
-    <select name="is_read">
-        <option value="0">No</option>
-        <option value="1">Yes</option>
-    </select><br><br>
+    <div class="mb-3">
+        <label class="form-label">Type</label>
+        <select name="type" class="form-control">
+            <option value="info" <?= $type === 'info' ? 'selected' : '' ?>>Info</option>
+            <option value="success" <?= $type === 'success' ? 'selected' : '' ?>>Success</option>
+            <option value="warning" <?= $type === 'warning' ? 'selected' : '' ?>>Warning</option>
+            <option value="error" <?= $type === 'error' ? 'selected' : '' ?>>Error</option>
+        </select>
+    </div>
 
-    <button type="submit" name="submit">Save</button>
+    <div class="mb-3 form-check">
+        <input type="checkbox" name="is_read" id="is_read" class="form-check-input" value="1" <?= $isRead ? 'checked' : '' ?> >
+        <label class="form-check-label" for="is_read">Mark as read</label>
+    </div>
+
+    <button type="submit" name="submit" class="btn btn-primary">Save Notification</button>
 </form>
 
-<a href="index.php">Back</a>
+<?php include '../../includes/footer.php'; ?>

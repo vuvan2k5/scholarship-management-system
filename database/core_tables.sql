@@ -151,45 +151,56 @@ INSERT INTO users (full_name, email, password_hash, role, student_code) VALUES
 INSERT INTO scholarship_programs
 (name, description, budget, slots, start_date, end_date, status)
 VALUES
-('Academic Excellence Scholarship',
- 'Scholarship for students with outstanding academic performance.',
- 50000000,
- 10,
- '2026-01-01',
- '2026-06-30',
- 'open'),
 
-('Research Innovation Scholarship',
- 'Support scholarship for students participating in scientific research.',
- 70000000,
- 8,
- '2026-01-10',
- '2026-07-15',
- 'open'),
+(
+'International Talent Scholarship',
+'Scholarship for internationally competitive students.',
+20000000,
+3,
+'2026-03-01',
+'2026-09-01',
+'open'
+),
 
-('Community Leadership Scholarship',
- 'Scholarship for active students contributing to community activities.',
- 30000000,
- 12,
- '2026-02-01',
- '2026-08-01',
- 'open'),
+(
+'Research Innovation Scholarship',
+'Support scholarship for students participating in scientific research.',
+15000000,
+5,
+'2026-01-10',
+'2026-07-15',
+'open'
+),
 
-('Financial Support Scholarship',
- 'Scholarship for students with financial difficulties.',
- 60000000,
- 15,
- '2026-01-15',
- '2026-07-30',
- 'open'),
+(
+'Academic Excellence Scholarship',
+'Scholarship for students with outstanding academic performance.',
+12000000,
+5,
+'2026-01-01',
+'2026-06-30',
+'open'
+),
 
-('International Talent Scholarship',
- 'Scholarship for internationally competitive students.',
- 100000000,
- 5,
- '2026-03-01',
- '2026-09-01',
- 'open');
+(
+'Community Leadership Scholarship',
+'Scholarship for active students contributing to community activities.',
+8000000,
+6,
+'2026-02-01',
+'2026-08-01',
+'open'
+),
+
+(
+'Financial Support Scholarship',
+'Scholarship for students with financial difficulties.',
+2000000,
+10,
+'2026-01-15',
+'2026-07-30',
+'open'
+);
 
 -- =====================================
 -- ELIGIBILITY RULES

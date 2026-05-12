@@ -1,7 +1,7 @@
-﻿<?php
+<?php
 
-include '../../config/db.php';
-include '../../includes/header.php';
+require_once __DIR__ . '/../../config/db.php';
+require_once __DIR__ . '/../../includes/header.php';
 
 $pageTitle = 'Edit Student Profile';
 
@@ -15,7 +15,7 @@ $profile = $stmt->fetch();
 
 if (!$profile) {
     echo '<div class="alert alert-danger">Profile not found.</div>';
-    include '../../includes/footer.php';
+    require_once __DIR__ . '/../../includes/footer.php';
     exit;
 }
 
@@ -125,4 +125,5 @@ if (isset($_POST['update'])) {
     <button type="submit" name="update" class="btn btn-success">Update Profile</button>
 </form>
 
-<?php include '../../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../../includes/footer.php'; ?>
+

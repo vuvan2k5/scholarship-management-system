@@ -1,8 +1,8 @@
-﻿<?php
+<?php
 
-include '../../config/db.php';
-include 'helpers.php';
-include '../../includes/header.php';
+require_once __DIR__ . '/../../config/db.php';
+require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/../../includes/header.php';
 
 $pageTitle = 'Edit Evaluation Score';
 $pdo = getDB();
@@ -15,7 +15,7 @@ $scoreData = $scoreStmt->fetch();
 
 if (!$scoreData) {
     echo '<div class="alert alert-danger">Score record not found.</div>';
-    include '../../includes/footer.php';
+    require_once __DIR__ . '/../../includes/footer.php';
     exit;
 }
 
@@ -126,4 +126,5 @@ if (isset($_POST['update'])) {
     <button type="submit" name="update" class="btn btn-success">Update Score</button>
 </form>
 
-<?php include '../../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../../includes/footer.php'; ?>
+

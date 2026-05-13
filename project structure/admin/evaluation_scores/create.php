@@ -1,8 +1,8 @@
-﻿<?php
+<?php
 
-include '../../config/db.php';
+require_once __DIR__ . '/../../config/db.php';
 include 'helpers.php';
-include '../../includes/header.php';
+require_once __DIR__ . '/../../includes/header.php';
 
 $pageTitle = 'Create Evaluation Score';
 $pdo = getDB();
@@ -120,4 +120,5 @@ if (isset($_POST['submit'])) {
     <button type="submit" name="submit" class="btn btn-primary">Submit Score</button>
 </form>
 
-<?php include '../../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../../includes/footer.php'; ?>
+

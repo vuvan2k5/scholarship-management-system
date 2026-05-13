@@ -1,7 +1,7 @@
-﻿<?php
+<?php
 
-include '../../config/db.php';
-include '../../includes/header.php';
+require_once __DIR__ . '/../../config/db.php';
+require_once __DIR__ . '/../../includes/header.php';
 
 $pageTitle = 'Add Notification';
 $pdo = getDB();
@@ -81,4 +81,5 @@ if (isset($_POST['submit'])) {
     <button type="submit" name="submit" class="btn btn-primary">Save Notification</button>
 </form>
 
-<?php include '../../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../../includes/footer.php'; ?>
+

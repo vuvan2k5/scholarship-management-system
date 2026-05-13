@@ -22,6 +22,7 @@ $role = currentRole();
                 <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/student/apply.php"><i class="bi bi-plus-circle"></i> Nộp hồ sơ</a></li>
                 <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/student/my_applications.php"><i class="bi bi-list-check"></i> Hồ sơ của tôi</a></li>
                 <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/student/my_results.php"><i class="bi bi-trophy"></i> Kết quả</a></li>
+                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/student/notifications.php"><i class="bi bi-bell"></i> Thông báo</a></li>
             <?php endif; ?>
         </ul>
         <ul class="navbar-nav">

@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS applications (
     id            INT(11) AUTO_INCREMENT PRIMARY KEY,
     student_id    INT(11) NOT NULL,
     program_id    INT(11) NOT NULL,
-    status        ENUM('draft','submitted','eligible','ineligible','approved','rejected','disbursed') DEFAULT 'draft',
+    status        ENUM('draft','submitted','reviewing','eligible','ineligible','approved','rejected','disbursed') DEFAULT 'draft',
     eligible      TINYINT(1) DEFAULT NULL COMMENT '1=đủ điều kiện, 0=không đủ',
     submitted_at  TIMESTAMP NULL DEFAULT NULL,
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

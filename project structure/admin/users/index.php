@@ -14,20 +14,55 @@ $users = $stmt->fetchAll();
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Users Management</title>
+
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .btn-add {
+            background: green;
+            color: white;
+            padding: 8px 12px;
+        }
+
+        .btn-edit {
+            color: orange;
+        }
+
+        .btn-delete {
+            color: red;
+        }
+    </style>
+
 </head>
+
 <body>
 
 <h1>Users Management</h1>
 
-<a href="create.php">
+<a href="create.php" class="btn-add">
     Add New User
 </a>
 
 <br><br>
 
-<table border="1" cellpadding="10">
+<table>
 
     <tr>
         <th>ID</th>
@@ -54,13 +89,14 @@ $users = $stmt->fetchAll();
 
     <td>
 
-        <a href="edit.php?id=<?= $user['id'] ?>">
+        <a class="btn-edit"
+           href="edit.php?id=<?= $user['id'] ?>">
             Edit
         </a>
 
-        |
-
-        <a href="delete.php?id=<?= $user['id'] ?>">
+        <a class="btn-delete"
+           href="delete.php?id=<?= $user['id'] ?>"
+           onclick="return confirm('Are you sure?')">
             Delete
         </a>
 

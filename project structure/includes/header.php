@@ -2,6 +2,7 @@
 // includes/header.php – Header HTML dùng chung
 // Yêu cầu: $pageTitle đã được set trước khi include
 if (!defined('BASE_URL')) define('BASE_URL', '');
+require_once __DIR__ . '/auth.php';
 ?>
 <!DOCTYPE html>
 <html lang="vi">

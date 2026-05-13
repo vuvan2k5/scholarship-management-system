@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
 $pageTitle = 'Evaluation Scores';
 $pdo = getDB();
-$sql = "SELECT es.*, c.name AS criteria_name, u.full_name AS reviewer_name,
+$sql = "SELECT es.*, c.criterion_name AS criteria_name, u.full_name AS reviewer_name,
                a.student_id, su.full_name AS student_name, sp.name AS program_name
         FROM evaluation_scores es
         JOIN scoring_criteria c ON es.criteria_id = c.id

@@ -26,7 +26,7 @@ $applications = $pdo->query(
       JOIN scholarship_programs s ON a.program_id = s.id
       ORDER BY a.id DESC"
 )->fetchAll();
-$criteria = $pdo->query('SELECT id, name, max_score FROM scoring_criteria ORDER BY name')->fetchAll();
+$criteria = $pdo->query('SELECT id, criterion_name AS name, max_score FROM scoring_criteria ORDER BY criterion_name')->fetchAll();
 $reviewers = $pdo->query('SELECT id, full_name FROM users ORDER BY full_name')->fetchAll();
 
 if (isset($_POST['update'])) {

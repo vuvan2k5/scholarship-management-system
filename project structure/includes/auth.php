@@ -5,6 +5,7 @@
 // ============================================================
 
 // Đảm bảo session đã start (gọi nhiều lần cũng an toàn)
+require_once __DIR__ . '/../config/app.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

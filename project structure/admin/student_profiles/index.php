@@ -6,7 +6,24 @@ require_once __DIR__ . '/../../includes/header.php';
 $pageTitle = 'Student Profiles';
 
 $pdo = getDB();
-$sql = "SELECT sp.*, u.full_name, u.email FROM student_profiles sp JOIN users u ON sp.user_id = u.id ORDER BY sp.id DESC";
+$sql = "
+
+    SELECT
+
+        sp.*,
+
+        u.full_name,
+
+        u.email
+
+    FROM student_profiles sp
+
+    JOIN users u
+        ON sp.user_id = u.id
+
+    ORDER BY sp.id DESC
+
+";
 $stmt = $pdo->query($sql);
 $profiles = $stmt->fetchAll();
 ?>

@@ -1,19 +1,31 @@
 <?php
-include '../../config/db.php';
-include '../../includes/auth.php';
 
-if (isset($_GET['id'])) {
-    $id = $_GET['id'];
+require_once '../../config/db.php';
 
-    $sql = "DELETE FROM users WHERE id = ?";
-    $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, "i", $id);
+require_once '../../includes/auth.php';
 
-    if (mysqli_stmt_execute($stmt)) {
-        header("Location: index.php");
-        exit;
-    } else {
-        echo "Delete failed";
-    }
+requireLogin();
+
+requireRole('admin');
+
+$pdo = getDB();
+
+$id = $_GET['id'] ?? null;
+
+if (!$id) {
+
+    die('Invalid User ID');
 }
-?>
+
+$sql = "
+    DELETE FROM users
+    WHERE id = ?
+";
+
+$stmt = $pdo->prepare($sql);
+
+$stmt->execute([$id]);
+
+header('Location: index.php');
+
+exit;

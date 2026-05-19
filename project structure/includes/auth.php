@@ -232,9 +232,13 @@ function redirect(string $url): void {
  * Ví dụ: echo e($user['full_name']);
  */
 
-function e(string $value): string {
+function e($value): string {
 
-    return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+    return htmlspecialchars(
+        (string) ($value ?? ''),
+        ENT_QUOTES,
+        'UTF-8'
+    );
 }
 
 /**

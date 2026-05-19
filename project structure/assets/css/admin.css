@@ -1,0 +1,131 @@
+/* =========================
+   GLOBAL ADMIN STYLES
+========================= */
+
+.page-title {
+
+    font-size: 42px;
+
+    font-weight: 700;
+
+    margin-bottom: 10px;
+
+    color: #0f172a;
+}
+
+.page-subtitle {
+
+    color: #64748b;
+
+    margin-bottom: 30px;
+}
+
+/* =========================
+   TABLES
+========================= */
+
+.table-card {
+
+    background: white;
+
+    border-radius: 20px;
+
+    padding: 20px;
+
+    box-shadow:
+        0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.table thead {
+
+    background: #f8fafc;
+}
+
+.table th {
+
+    font-weight: 700;
+
+    color: #334155;
+
+    padding: 18px 12px;
+}
+
+.table td {
+
+    padding: 18px 12px;
+
+    vertical-align: middle;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.btn-action {
+
+    min-width: 90px;
+}
+
+.btn-primary {
+
+    background: #2563eb !important;
+
+    border: none !important;
+}
+
+.btn-success {
+
+    border: none !important;
+}
+
+.btn-danger {
+
+    border: none !important;
+}
+
+.btn-warning {
+
+    border: none !important;
+}
+
+/* =========================
+   BADGES
+========================= */
+
+.badge {
+
+    padding: 8px 12px;
+
+    border-radius: 8px;
+}
+
+/* =========================
+   FORMS
+========================= */
+
+.form-card {
+
+    background: white;
+
+    border-radius: 20px;
+
+    padding: 30px;
+
+    box-shadow:
+        0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.form-control,
+.form-select {
+
+    border-radius: 12px;
+
+    padding: 12px;
+}
+
+label {
+
+    font-weight: 600;
+
+    margin-bottom: 8px;
+}

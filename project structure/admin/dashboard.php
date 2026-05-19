@@ -1,5 +1,7 @@
 <?php
 
+$pageTitle = 'Admin Dashboard';
+
 require_once '../config/db.php';
 
 require_once '../includes/auth.php';
@@ -8,7 +10,15 @@ requireLogin();
 
 requireRole('admin');
 
+require_once '../includes/header.php';
+
+require_once '../includes/navbar.php';
+
 $pdo = getDB();
+
+/* =========================
+   STATISTICS
+========================= */
 
 $totalApplications = $pdo->query("
     SELECT COUNT(*) FROM applications
@@ -26,130 +36,460 @@ $totalNotifications = $pdo->query("
     SELECT COUNT(*) FROM notifications
 ")->fetchColumn();
 
+/* =========================
+   RECENT APPLICATIONS
+========================= */
+
+$recentApps = $pdo->query("
+    SELECT *
+    FROM applications
+    ORDER BY id DESC
+    LIMIT 5
+");
+
 ?>
 
-<!DOCTYPE html>
-<html>
+<div class="container py-4">
 
-<head>
+    <!-- PAGE HEADER -->
 
-    <title>Admin Dashboard</title>
+    <div class="mb-4">
 
-    <style>
+        <h2 class="fw-bold">
 
-        body{
-            font-family: Arial;
-            padding: 30px;
-            background: #f4f6f9;
-        }
+            Welcome,
+            <?= e(currentUserName()) ?>
 
-        h2{
-            margin-bottom: 30px;
-        }
+        </h2>
 
-        .dashboard{
+        <p class="text-muted">
 
-            display: flex;
+            Scholarship Management System Dashboard
 
-            gap: 20px;
+        </p>
 
-            flex-wrap: wrap;
-        }
+    </div>
 
-        .card{
+    <!-- STATISTICS CARDS -->
 
-            background: white;
+    <div class="row g-4">
 
-            padding: 20px;
+        <!-- Applications -->
 
-            width: 200px;
+        <div class="col-md-3">
 
-            border-radius: 10px;
+            <div class="card h-100">
 
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                <div class="card-body">
 
-            text-align: center;
-        }
+                    <div class="d-flex justify-content-between">
 
-        .card h3{
+                        <div>
 
-            font-size: 32px;
+                            <p class="text-muted mb-2">
 
-            color: #007bff;
+                                Applications
 
-            margin-bottom: 10px;
-        }
+                            </p>
 
-        .logout{
+                            <h2 class="fw-bold text-primary">
 
-            display: inline-block;
+                                <?= e($totalApplications) ?>
 
-            margin-top: 30px;
+                            </h2>
 
-            color: red;
+                        </div>
 
-            text-decoration: none;
-        }
+                        <div
+                            class="
+                                bg-primary
+                                text-white
+                                rounded-circle
+                                d-flex
+                                align-items-center
+                                justify-content-center
+                            "
+                            style="
+                                width:60px;
+                                height:60px;
+                                font-size:24px;
+                            "
+                        >
 
-    </style>
+                            📂
 
-</head>
+                        </div>
 
-<body>
+                    </div>
 
-    <h2>
-        Welcome Admin,
-        <?= e(currentUserName()) ?>
-    </h2>
+                </div>
 
-    <div class="dashboard">
-
-        <div class="card">
-
-            <h3>
-                <?= e($totalApplications) ?>
-            </h3>
-
-            <p>Applications</p>
+            </div>
 
         </div>
 
-        <div class="card">
+        <!-- Students -->
 
-            <h3>
-                <?= e($totalStudents) ?>
-            </h3>
+        <div class="col-md-3">
 
-            <p>Students</p>
+            <div class="card h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <p class="text-muted mb-2">
+
+                                Students
+
+                            </p>
+
+                            <h2 class="fw-bold text-success">
+
+                                <?= e($totalStudents) ?>
+
+                            </h2>
+
+                        </div>
+
+                        <div
+                            class="
+                                bg-success
+                                text-white
+                                rounded-circle
+                                d-flex
+                                align-items-center
+                                justify-content-center
+                            "
+                            style="
+                                width:60px;
+                                height:60px;
+                                font-size:24px;
+                            "
+                        >
+
+                            🎓
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
-        <div class="card">
+        <!-- Scores -->
 
-            <h3>
-                <?= e($totalScores) ?>
-            </h3>
+        <div class="col-md-3">
 
-            <p>Scores</p>
+            <div class="card h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <p class="text-muted mb-2">
+
+                                Evaluation Scores
+
+                            </p>
+
+                            <h2 class="fw-bold text-warning">
+
+                                <?= e($totalScores) ?>
+
+                            </h2>
+
+                        </div>
+
+                        <div
+                            class="
+                                bg-warning
+                                text-white
+                                rounded-circle
+                                d-flex
+                                align-items-center
+                                justify-content-center
+                            "
+                            style="
+                                width:60px;
+                                height:60px;
+                                font-size:24px;
+                            "
+                        >
+
+                            ⭐
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
-        <div class="card">
+        <!-- Notifications -->
 
-            <h3>
-                <?= e($totalNotifications) ?>
-            </h3>
+        <div class="col-md-3">
 
-            <p>Notifications</p>
+            <div class="card h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <p class="text-muted mb-2">
+
+                                Notifications
+
+                            </p>
+
+                            <h2 class="fw-bold text-danger">
+
+                                <?= e($totalNotifications) ?>
+
+                            </h2>
+
+                        </div>
+
+                        <div
+                            class="
+                                bg-danger
+                                text-white
+                                rounded-circle
+                                d-flex
+                                align-items-center
+                                justify-content-center
+                            "
+                            style="
+                                width:60px;
+                                height:60px;
+                                font-size:24px;
+                            "
+                        >
+
+                            🔔
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
     </div>
 
-    <a class="logout" href="../logout.php">
-        Logout
-    </a>
+    <!-- SECOND ROW -->
 
-</body>
+    <div class="row mt-4">
 
-</html>
+        <!-- RECENT APPLICATIONS -->
+
+        <div class="col-lg-8">
+
+            <div class="card">
+
+                <div class="card-body">
+
+                    <h4 class="mb-4">
+
+                        Recent Applications
+
+                    </h4>
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover align-middle">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>ID</th>
+
+                                    <th>Status</th>
+
+                                    <th>Submitted At</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                <?php foreach ($recentApps as $app): ?>
+
+                                    <tr>
+
+                                        <td>
+
+                                            #<?= e($app['id']) ?>
+
+                                        </td>
+
+                                        <td>
+
+                                            <span class="badge bg-primary">
+
+                                                <?= e($app['status']) ?>
+
+                                            </span>
+
+                                        </td>
+
+                                        <td>
+
+                                            <?= e($app['submitted_at']) ?>
+
+                                        </td>
+
+                                    </tr>
+
+                                <?php endforeach; ?>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- SYSTEM STATUS -->
+
+        <div class="col-lg-4">
+
+            <div class="card">
+
+                <div class="card-body">
+
+                    <h4 class="mb-4">
+
+                        System Status
+
+                    </h4>
+
+                    <div class="mb-3">
+
+                        <strong>
+
+                            Database:
+
+                        </strong>
+
+                        <span class="badge bg-success">
+
+                            Online
+
+                        </span>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <strong>
+
+                            Server:
+
+                        </strong>
+
+                        <span class="badge bg-primary">
+
+                            Running
+
+                        </span>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <strong>
+
+                            Authentication:
+
+                        </strong>
+
+                        <span class="badge bg-success">
+
+                            Active
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- QUICK ACTIONS -->
+
+    <div class="card mt-4">
+
+        <div class="card-body">
+
+            <h4 class="mb-4">
+
+                Quick Actions
+
+            </h4>
+
+            <div class="d-flex gap-3 flex-wrap">
+
+                <a
+                    href="users/index.php"
+                    class="btn btn-primary"
+                >
+                    Manage Users
+                </a>
+
+                <a
+                    href="applications/index.php"
+                    class="btn btn-success"
+                >
+                    Applications
+                </a>
+
+                <a
+                    href="evaluation_scores/index.php"
+                    class="btn btn-warning"
+                >
+                    Evaluation Scores
+                </a>
+
+                <a
+                    href="notifications/index.php"
+                    class="btn btn-danger"
+                >
+                    Notifications
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<?php require_once '../includes/footer.php'; ?>

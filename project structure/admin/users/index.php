@@ -1,10 +1,22 @@
 <?php
 
-include '../../config/db.php';
+$pageTitle = 'Users Management';
+
+require_once '../../config/db.php';
+
+require_once '../../includes/auth.php';
+
+requireLogin();
+
+requireRole('admin');
+
+require_once '../../includes/header.php';
+
+require_once '../../includes/navbar.php';
 
 $pdo = getDB();
 
-$sql = "SELECT * FROM users";
+$sql = "SELECT * FROM users ORDER BY id DESC";
 
 $stmt = $pdo->query($sql);
 
@@ -12,101 +24,120 @@ $users = $stmt->fetchAll();
 
 ?>
 
-<!DOCTYPE html>
-<html>
+<div class="container mt-4">
 
-<head>
-    <title>Users Management</title>
+    <div class="d-flex justify-content-between align-items-center mb-3">
 
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
+        <h2>
+            Users Management
+        </h2>
 
-        th,
-        td {
-            padding: 10px;
-            border: 1px solid #ccc;
-            text-align: center;
-        }
+        <a
+            href="create.php"
+            class="btn btn-primary"
+        >
 
-        a {
-            text-decoration: none;
-        }
+            <i class="bi bi-plus-circle"></i>
 
-        .btn-add {
-            background: green;
-            color: white;
-            padding: 8px 12px;
-        }
+            Add New User
 
-        .btn-edit {
-            color: orange;
-        }
-
-        .btn-delete {
-            color: red;
-        }
-    </style>
-
-</head>
-
-<body>
-
-<h1>Users Management</h1>
-
-<a href="create.php" class="btn-add">
-    Add New User
-</a>
-
-<br><br>
-
-<table>
-
-    <tr>
-        <th>ID</th>
-        <th>Full Name</th>
-        <th>Email</th>
-        <th>Role</th>
-        <th>Student Code</th>
-        <th>Actions</th>
-    </tr>
-
-<?php foreach($users as $user) { ?>
-
-<tr>
-
-    <td><?= $user['id'] ?></td>
-
-    <td><?= $user['full_name'] ?></td>
-
-    <td><?= $user['email'] ?></td>
-
-    <td><?= $user['role'] ?></td>
-
-    <td><?= $user['student_code'] ?></td>
-
-    <td>
-
-        <a class="btn-edit"
-           href="edit.php?id=<?= $user['id'] ?>">
-            Edit
         </a>
 
-        <a class="btn-delete"
-           href="delete.php?id=<?= $user['id'] ?>"
-           onclick="return confirm('Are you sure?')">
-            Delete
-        </a>
+    </div>
 
-    </td>
+    <div class="card">
 
-</tr>
+        <div class="card-body">
 
-<?php } ?>
+            <div class="table-responsive">
 
-</table>
+                <table class="table table-bordered table-hover align-middle">
 
-</body>
-</html>
+                    <thead>
+
+                        <tr>
+
+                            <th>ID</th>
+
+                            <th>Full Name</th>
+
+                            <th>Email</th>
+
+                            <th>Role</th>
+
+                            <th>Student Code</th>
+
+                            <th>Actions</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <?php foreach ($users as $user): ?>
+
+                            <tr>
+
+                                <td>
+                                    <?= e($user['id']) ?>
+                                </td>
+
+                                <td>
+                                    <?= e($user['full_name']) ?>
+                                </td>
+
+                                <td>
+                                    <?= e($user['email']) ?>
+                                </td>
+
+                                <td>
+
+                                    <span class="badge bg-secondary">
+
+                                        <?= e($user['role']) ?>
+
+                                    </span>
+
+                                </td>
+
+                                <td>
+                                    <?= e($user['student_code']) ?>
+                                </td>
+
+                                <td>
+
+                                    <a
+                                        href="edit.php?id=<?= $user['id'] ?>"
+                                        class="btn btn-warning btn-sm"
+                                    >
+                                        Edit
+                                    </a>
+
+                                    <a
+                                        href="delete.php?id=<?= $user['id'] ?>"
+                                        class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Are you sure?')"
+                                    >
+                                        Delete
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+                        <?php endforeach; ?>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<?php require_once '../../includes/footer.php'; ?>

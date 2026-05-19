@@ -1,41 +1,153 @@
 <?php
-// includes/navbar.php – Thanh điều hướng theo role
 $role = currentRole();
 ?>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
-    <a class="navbar-brand" href="<?= BASE_URL ?>/index.php">🎓 Scholarship</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navMenu">
-        <ul class="navbar-nav me-auto">
+
+<div class="d-flex">
+
+    <!-- SIDEBAR -->
+
+    <div
+        class="sidebar d-flex flex-column flex-shrink-0 p-3 text-white"
+        style="
+            width: 260px;
+            min-height: 100vh;
+            background: linear-gradient(
+                180deg,
+                #0f172a,
+                #1e293b
+            );
+            position: fixed;
+            left: 0;
+            top: 0;
+        "
+    >
+
+        <a
+            href="<?= BASE_URL ?>/index.php"
+            class="d-flex align-items-center mb-4 text-white text-decoration-none"
+        >
+
+            <span class="fs-3 fw-bold">
+
+                🎓 Scholarship
+
+            </span>
+
+        </a>
+
+        <hr class="text-secondary">
+
+        <ul class="nav nav-pills flex-column mb-auto">
+
             <?php if ($role === 'admin'): ?>
-                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/admin/dashboard.php"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/admin/applications/index.php"><i class="bi bi-folder2-open"></i> Hồ sơ</a></li>
-                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/admin/evaluation_scores/index.php"><i class="bi bi-star-half"></i> Chấm điểm</a></li>
-                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/admin/student_profiles/index.php"><i class="bi bi-person-lines-fill"></i> Sinh viên</a></li>
-                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/admin/notifications/index.php"><i class="bi bi-bell"></i> Thông báo</a></li>
-            <?php elseif ($role === 'council'): ?>
-                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/admin/evaluation_scores/index.php"><i class="bi bi-star-half"></i> Chấm điểm</a></li>
-                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/admin/applications/index.php"><i class="bi bi-folder2-open"></i> Hồ sơ</a></li>
-            <?php elseif ($role === 'student'): ?>
-                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/student/apply.php"><i class="bi bi-plus-circle"></i> Nộp hồ sơ</a></li>
-                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/student/my_applications.php"><i class="bi bi-list-check"></i> Hồ sơ của tôi</a></li>
-                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/student/my_results.php"><i class="bi bi-trophy"></i> Kết quả</a></li>
-                <li class="nav-item"><a class="nav-link" href="<?= BASE_URL ?>/student/notifications.php"><i class="bi bi-bell"></i> Thông báo</a></li>
+
+                <li class="nav-item mb-2">
+
+                    <a
+                        href="<?= BASE_URL ?>/admin/dashboard.php"
+                        class="nav-link text-white"
+                    >
+                        📊 Dashboard
+                    </a>
+
+                </li>
+
+                <li class="mb-2">
+
+                    <a
+                        href="<?= BASE_URL ?>/admin/users/index.php"
+                        class="nav-link text-white"
+                    >
+                        👤 Users
+                    </a>
+
+                </li>
+
+                <li class="mb-2">
+
+                    <a
+                        href="<?= BASE_URL ?>/admin/applications/index.php"
+                        class="nav-link text-white"
+                    >
+                        📂 Applications
+                    </a>
+
+                </li>
+
+                <li class="mb-2">
+
+                    <a
+                        href="<?= BASE_URL ?>/admin/student_profiles/index.php"
+                        class="nav-link text-white"
+                    >
+                        🎓 Students
+                    </a>
+
+                </li>
+
+                <li class="mb-2">
+
+                    <a
+                        href="<?= BASE_URL ?>/admin/evaluation_scores/index.php"
+                        class="nav-link text-white"
+                    >
+                        ⭐ Evaluation
+                    </a>
+
+                </li>
+
+                <li class="mb-2">
+
+                    <a
+                        href="<?= BASE_URL ?>/admin/notifications/index.php"
+                        class="nav-link text-white"
+                    >
+                        🔔 Notifications
+                    </a>
+
+                </li>
+
             <?php endif; ?>
+
         </ul>
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <span class="nav-link text-light">
-                    <i class="bi bi-person-circle"></i>
-                    <?= e(currentUserName()) ?>
-                    <span class="badge bg-secondary ms-1"><?= e($role ?? '') ?></span>
-                </span>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-warning" href="<?= BASE_URL ?>/logout.php"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
-            </li>
-        </ul>
+
+        <hr class="text-secondary">
+
+        <div>
+
+            <div class="mb-2">
+
+                👤 <?= e(currentUserName()) ?>
+
+            </div>
+
+            <span class="badge bg-primary">
+
+                <?= e($role) ?>
+
+            </span>
+
+            <div class="mt-3">
+
+                <a
+                    href="<?= BASE_URL ?>/logout.php"
+                    class="btn btn-warning btn-sm w-100"
+                >
+                    Logout
+                </a>
+
+            </div>
+
+        </div>
+
     </div>
-</nav>
+
+    <!-- MAIN CONTENT -->
+
+    <div
+        style="
+            margin-left: 260px;
+            width: calc(100% - 260px);
+            min-height: 100vh;
+        "
+    >

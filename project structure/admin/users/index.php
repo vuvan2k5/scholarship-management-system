@@ -16,7 +16,11 @@ require_once '../../includes/navbar.php';
 
 $pdo = getDB();
 
-$sql = "SELECT * FROM users ORDER BY id DESC";
+$sql = "
+    SELECT *
+    FROM users
+    ORDER BY id DESC
+";
 
 $stmt = $pdo->query($sql);
 
@@ -24,23 +28,29 @@ $users = $stmt->fetchAll();
 
 ?>
 
-<div class="container mt-4">
+<div class="container py-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-        <h2>
-            Users Management
-        </h2>
+        <div>
+
+            <h2 class="fw-bold mb-1">
+                Users Management
+            </h2>
+
+            <p class="text-muted">
+                Manage all system users
+            </p>
+
+        </div>
 
         <a
             href="create.php"
             class="btn btn-primary"
         >
-
             <i class="bi bi-plus-circle"></i>
 
-            Add New User
-
+            Add User
         </a>
 
     </div>
@@ -51,7 +61,7 @@ $users = $stmt->fetchAll();
 
             <div class="table-responsive">
 
-                <table class="table table-bordered table-hover align-middle">
+                <table class="table table-hover align-middle">
 
                     <thead>
 
@@ -67,7 +77,9 @@ $users = $stmt->fetchAll();
 
                             <th>Student Code</th>
 
-                            <th>Actions</th>
+                            <th width="180">
+                                Actions
+                            </th>
 
                         </tr>
 
@@ -93,11 +105,23 @@ $users = $stmt->fetchAll();
 
                                 <td>
 
-                                    <span class="badge bg-secondary">
+                                    <?php if ($user['role'] === 'admin'): ?>
 
-                                        <?= e($user['role']) ?>
+                                        <span class="badge bg-danger">
 
-                                    </span>
+                                            Admin
+
+                                        </span>
+
+                                    <?php else: ?>
+
+                                        <span class="badge bg-primary">
+
+                                            Student
+
+                                        </span>
+
+                                    <?php endif; ?>
 
                                 </td>
 
@@ -109,15 +133,15 @@ $users = $stmt->fetchAll();
 
                                     <a
                                         href="edit.php?id=<?= $user['id'] ?>"
-                                        class="btn btn-warning btn-sm"
+                                        class="btn btn-sm btn-warning"
                                     >
                                         Edit
                                     </a>
 
                                     <a
                                         href="delete.php?id=<?= $user['id'] ?>"
-                                        class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Are you sure?')"
+                                        class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Delete this user?')"
                                     >
                                         Delete
                                     </a>

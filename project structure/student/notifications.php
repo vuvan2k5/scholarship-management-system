@@ -1,59 +1,262 @@
 ﻿<?php
+
+$pageTitle = 'My Notifications';
+
 require_once __DIR__ . '/../../config/db.php';
-require_once __DIR__ . '/../../includes/header.php';
+
+require_once __DIR__ . '/../../includes/auth.php';
+
 requireLogin();
+
 requireRole('student');
 
+require_once __DIR__ . '/../../includes/header.php';
+
+require_once __DIR__ . '/../../includes/navbar.php';
+
 $pdo = getDB();
+
 $userId = currentUserId();
-$error = '';
+
+/* =========================
+   MARK ALL AS READ
+========================= */
 
 if (isset($_GET['mark_all'])) {
-    $update = $pdo->prepare('UPDATE notifications SET is_read = 1 WHERE user_id = ?');
+
+    $update = $pdo->prepare("
+
+        UPDATE notifications
+
+        SET is_read = 1
+
+        WHERE user_id = ?
+
+    ");
+
     $update->execute([$userId]);
-    header('Location: notifications.php');
-    exit;
+
+    redirect('notifications.php');
 }
 
-$notifications = $pdo->prepare('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC');
-$notifications->execute([$userId]);
-$notifications = $notifications->fetchAll();
+/* =========================
+   FETCH NOTIFICATIONS
+========================= */
+
+$sql = "
+
+    SELECT *
+
+    FROM notifications
+
+    WHERE user_id = ?
+
+    ORDER BY created_at DESC
+
+";
+
+$stmt = $pdo->prepare($sql);
+
+$stmt->execute([$userId]);
+
+$notifications = $stmt->fetchAll();
+
 ?>
 
-<h2 class="mb-4">Thông báo của tôi</h2>
-<p>
-    <a href="?mark_all=1" class="btn btn-sm btn-secondary">Đánh dấu đã đọc tất cả</a>
-</p>
+<div class="container py-4">
 
-<?php if (empty($notifications)): ?>
-    <div class="alert alert-info">Bạn chưa có thông báo nào.</div>
-<?php else: ?>
-    <div class="table-responsive">
-        <table class="table table-bordered align-middle">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Tiêu đề</th>
-                    <th>Nội dung</th>
-                    <th>Loại</th>
-                    <th>Đã đọc</th>
-                    <th>Ngày</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($notifications as $note): ?>
-                    <tr>
-                        <td><?= e($note['id']) ?></td>
-                        <td><?= e($note['title']) ?></td>
-                        <td><?= e($note['message']) ?></td>
-                        <td><?= e(ucfirst($note['type'])) ?></td>
-                        <td><?= $note['is_read'] ? 'Có' : 'Chưa' ?></td>
-                        <td><?= e($note['created_at']) ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+    <!-- PAGE HEADER -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h1 class="page-title">
+
+                My Notifications
+
+            </h1>
+
+            <p class="page-subtitle">
+
+                View all system notifications and updates
+
+            </p>
+
+        </div>
+
+        <a
+            href="?mark_all=1"
+            class="btn btn-secondary"
+        >
+
+            <i class="bi bi-check2-all me-2"></i>
+
+            Mark All as Read
+
+        </a>
+
     </div>
-<?php endif; ?>
+
+    <!-- EMPTY STATE -->
+
+    <?php if (empty($notifications)): ?>
+
+        <div class="card text-center py-5">
+
+            <div class="card-body">
+
+                <h4 class="mb-3">
+
+                    No Notifications Found
+
+                </h4>
+
+                <p class="text-muted">
+
+                    You currently have no notifications.
+
+                </p>
+
+            </div>
+
+        </div>
+
+    <?php else: ?>
+
+        <!-- NOTIFICATION TABLE -->
+
+        <div class="card">
+
+            <div class="card-body">
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>ID</th>
+
+                                <th>Title</th>
+
+                                <th>Message</th>
+
+                                <th>Type</th>
+
+                                <th>Status</th>
+
+                                <th>Date</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <?php foreach ($notifications as $note): ?>
+
+                                <tr
+                                    class="<?= !$note['is_read']
+                                        ? 'table-warning'
+                                        : ''
+                                    ?>"
+                                >
+
+                                    <td>
+
+                                        #<?= e($note['id']) ?>
+
+                                    </td>
+
+                                    <td>
+
+                                        <?= e($note['title']) ?>
+
+                                    </td>
+
+                                    <td style="max-width:350px;">
+
+                                        <?= e($note['message']) ?>
+
+                                    </td>
+
+                                    <td>
+
+                                        <?php
+
+                                        $badge = 'bg-secondary';
+
+                                        if ($note['type'] === 'success') {
+                                            $badge = 'bg-success';
+                                        }
+
+                                        if ($note['type'] === 'warning') {
+                                            $badge = 'bg-warning';
+                                        }
+
+                                        if ($note['type'] === 'error') {
+                                            $badge = 'bg-danger';
+                                        }
+
+                                        ?>
+
+                                        <span class="badge <?= $badge ?>">
+
+                                            <?= e(
+                                                ucfirst($note['type'])
+                                            ) ?>
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <?php if ($note['is_read']): ?>
+
+                                            <span class="badge bg-success">
+
+                                                Read
+
+                                            </span>
+
+                                        <?php else: ?>
+
+                                            <span class="badge bg-warning">
+
+                                                Unread
+
+                                            </span>
+
+                                        <?php endif; ?>
+
+                                    </td>
+
+                                    <td>
+
+                                        <?= e($note['created_at']) ?>
+
+                                    </td>
+
+                                </tr>
+
+                            <?php endforeach; ?>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    <?php endif; ?>
+
+</div>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>

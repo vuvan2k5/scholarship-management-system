@@ -1,6 +1,6 @@
 <?php
 
-$pageTitle = 'Student Dashboard';
+$pageTitle = 'Reviewer Dashboard';
 
 require_once '../config/db.php';
 
@@ -8,7 +8,7 @@ require_once '../includes/auth.php';
 
 requireLogin();
 
-requireRole('student');
+requireRole('council');
 
 require_once '../includes/header.php';
 
@@ -16,84 +16,41 @@ require_once '../includes/navbar.php';
 
 $pdo = getDB();
 
-$studentId = currentUserId();
-
 /* =========================
-   STUDENT STATISTICS
+   REVIEWER STATISTICS
 ========================= */
 
-$totalApplications = $pdo->prepare("
-
+$totalApplications = $pdo->query("
     SELECT COUNT(*)
-
     FROM applications
+")->fetchColumn();
 
-    WHERE student_id = ?
-
-");
-
-$totalApplications->execute([$studentId]);
-
-$totalApplications = $totalApplications->fetchColumn();
-
-$approvedApplications = $pdo->prepare("
-
+$totalScores = $pdo->query("
     SELECT COUNT(*)
+    FROM evaluation_scores
+    WHERE council_id = " . currentUserId()
+)->fetchColumn();
 
+$pendingApplications = $pdo->query("
+    SELECT COUNT(*)
     FROM applications
-
-    WHERE student_id = ?
-    AND status = 'approved'
-
-");
-
-$approvedApplications->execute([$studentId]);
-
-$approvedApplications = $approvedApplications->fetchColumn();
-
-$notifications = $pdo->prepare("
-
-    SELECT COUNT(*)
-
-    FROM notifications
-
-    WHERE user_id = ?
-    AND is_read = 0
-
-");
-
-$notifications->execute([$studentId]);
-
-$notifications = $notifications->fetchColumn();
+    WHERE status = 'submitted'
+")->fetchColumn();
 
 /* =========================
    RECENT APPLICATIONS
 ========================= */
 
-$recentApplications = $pdo->prepare("
-
+$recentApplications = $pdo->query("
     SELECT
-
         applications.*,
-
-        scholarship_programs.name AS program_name
-
+        users.full_name
     FROM applications
-
-    JOIN scholarship_programs
-        ON applications.program_id = scholarship_programs.id
-
-    WHERE applications.student_id = ?
-
+    JOIN users
+        ON applications.student_id = users.id
     ORDER BY applications.id DESC
-
     LIMIT 5
-
 ");
-
-$recentApplications->execute([$studentId]);
-
-$recentApplications = $recentApplications->fetchAll();
 
 ?>
 
@@ -105,14 +62,13 @@ $recentApplications = $recentApplications->fetchAll();
 
         <h1 class="page-title">
 
-            Welcome,
-            <?= e(currentUserName()) ?>
+            Reviewer Dashboard
 
         </h1>
 
         <p class="page-subtitle">
 
-            Student Scholarship Dashboard
+            Review and evaluate scholarship applications
 
         </p>
 
@@ -120,9 +76,9 @@ $recentApplications = $recentApplications->fetchAll();
 
     <!-- STATISTICS -->
 
-    <div class="row g-4 mb-4">
+    <div class="row g-4">
 
-        <!-- Applications -->
+        <!-- Total Applications -->
 
         <div class="col-md-4">
 
@@ -176,7 +132,7 @@ $recentApplications = $recentApplications->fetchAll();
 
         </div>
 
-        <!-- Approved -->
+        <!-- Pending -->
 
         <div class="col-md-4">
 
@@ -190,67 +146,13 @@ $recentApplications = $recentApplications->fetchAll();
 
                             <p class="text-muted mb-2">
 
-                                Approved
-
-                            </p>
-
-                            <h2 class="fw-bold text-success">
-
-                                <?= e($approvedApplications) ?>
-
-                            </h2>
-
-                        </div>
-
-                        <div
-                            class="
-                                bg-success
-                                text-white
-                                rounded-circle
-                                d-flex
-                                align-items-center
-                                justify-content-center
-                            "
-                            style="
-                                width:60px;
-                                height:60px;
-                                font-size:24px;
-                            "
-                        >
-
-                            ✅
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- Notifications -->
-
-        <div class="col-md-4">
-
-            <div class="card h-100">
-
-                <div class="card-body">
-
-                    <div class="d-flex justify-content-between">
-
-                        <div>
-
-                            <p class="text-muted mb-2">
-
-                                Notifications
+                                Pending Reviews
 
                             </p>
 
                             <h2 class="fw-bold text-warning">
 
-                                <?= e($notifications) ?>
+                                <?= e($pendingApplications) ?>
 
                             </h2>
 
@@ -272,7 +174,61 @@ $recentApplications = $recentApplications->fetchAll();
                             "
                         >
 
-                            🔔
+                            ⏳
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Evaluations -->
+
+        <div class="col-md-4">
+
+            <div class="card h-100">
+
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between">
+
+                        <div>
+
+                            <p class="text-muted mb-2">
+
+                                My Evaluations
+
+                            </p>
+
+                            <h2 class="fw-bold text-success">
+
+                                <?= e($totalScores) ?>
+
+                            </h2>
+
+                        </div>
+
+                        <div
+                            class="
+                                bg-success
+                                text-white
+                                rounded-circle
+                                d-flex
+                                align-items-center
+                                justify-content-center
+                            "
+                            style="
+                                width:60px;
+                                height:60px;
+                                font-size:24px;
+                            "
+                        >
+
+                            ⭐
 
                         </div>
 
@@ -286,24 +242,9 @@ $recentApplications = $recentApplications->fetchAll();
 
     </div>
 
-    <!-- QUICK ACTION -->
-
-    <div class="mb-4">
-
-        <a
-            href="apply.php"
-            class="btn btn-primary"
-        >
-
-            Apply Scholarship
-
-        </a>
-
-    </div>
-
     <!-- RECENT APPLICATIONS -->
 
-    <div class="card">
+    <div class="card mt-4">
 
         <div class="card-body">
 
@@ -323,11 +264,11 @@ $recentApplications = $recentApplications->fetchAll();
 
                             <th>ID</th>
 
-                            <th>Scholarship</th>
+                            <th>Student</th>
 
                             <th>Status</th>
 
-                            <th>Submitted At</th>
+                            <th>Action</th>
 
                         </tr>
 
@@ -347,31 +288,13 @@ $recentApplications = $recentApplications->fetchAll();
 
                                 <td>
 
-                                    <?= e($app['program_name']) ?>
+                                    <?= e($app['full_name']) ?>
 
                                 </td>
 
                                 <td>
 
-                                    <?php
-
-                                    $badge = 'bg-secondary';
-
-                                    if ($app['status'] === 'submitted') {
-                                        $badge = 'bg-warning';
-                                    }
-
-                                    if ($app['status'] === 'approved') {
-                                        $badge = 'bg-success';
-                                    }
-
-                                    if ($app['status'] === 'rejected') {
-                                        $badge = 'bg-danger';
-                                    }
-
-                                    ?>
-
-                                    <span class="badge <?= $badge ?>">
+                                    <span class="badge bg-primary">
 
                                         <?= e($app['status']) ?>
 
@@ -381,7 +304,14 @@ $recentApplications = $recentApplications->fetchAll();
 
                                 <td>
 
-                                    <?= e($app['submitted_at']) ?>
+                                    <a
+                                        href="review.php?id=<?= $app['id'] ?>"
+                                        class="btn btn-sm btn-primary"
+                                    >
+
+                                        Review
+
+                                    </a>
 
                                 </td>
 

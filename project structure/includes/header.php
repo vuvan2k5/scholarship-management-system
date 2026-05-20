@@ -1,185 +1,229 @@
 <?php
-// includes/header.php – Header HTML dùng chung
-// Yêu cầu: $pageTitle đã được set trước khi include
-if (!defined('BASE_URL')) define('BASE_URL', '');
-require_once __DIR__ . '/auth.php';
+// ============================================================
+// includes/header.php
+// Global HTML Header
+// $pageTitle should be set before including this file
+// ============================================================
+
 ?>
 <!DOCTYPE html>
-<html lang="vi">
+
+<html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= isset($pageTitle) ? e($pageTitle) . ' – ' : '' ?>Scholarship System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+
+        <?= isset($pageTitle)
+            ? e($pageTitle) . ' – '
+            : '' ?>
+
+        Scholarship System
+
+    </title>
+
+    <!-- Bootstrap -->
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- Bootstrap Icons -->
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+        rel="stylesheet"
+    >
+
+    <!-- Custom Admin CSS -->
+
+    <link
+        rel="stylesheet"
+        href="<?= BASE_URL ?>/assets/css/admin.css"
+    >
+
+    <!-- Global Styles -->
+
     <style>
-        <link
-    rel="stylesheet"
-    href="<?= BASE_URL ?>/assets/css/admin.css"
-        >
 
-    body{
-        background: #f1f5f9;
-        font-family: 'Segoe UI', sans-serif;
-        color: #1e293b;
-    }
+        body{
 
-    /* NAVBAR */
+            background: #f1f5f9;
 
-    .navbar{
+            font-family: 'Segoe UI', sans-serif;
 
-        background: linear-gradient(
-            90deg,
-            #0f172a,
-            #1e293b
-        ) !important;
+            color: #1e293b;
+        }
 
-        padding: 14px 24px;
+        /* NAVBAR */
 
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    }
+        .navbar{
 
-    .navbar-brand{
+            background: linear-gradient(
+                90deg,
+                #0f172a,
+                #1e293b
+            ) !important;
 
-        font-weight: 700;
+            padding: 14px 24px;
 
-        font-size: 30px;
+            box-shadow:
+                0 2px 10px rgba(0,0,0,0.08);
+        }
 
-        color: white !important;
-    }
+        .navbar-brand{
 
-    .navbar .nav-link{
+            font-weight: 700;
 
-        color: rgba(255,255,255,0.8) !important;
+            font-size: 30px;
 
-        transition: .2s;
-    }
+            color: white !important;
+        }
 
-    .navbar .nav-link:hover{
+        .navbar .nav-link{
 
-        color: white !important;
-    }
+            color: rgba(255,255,255,0.8) !important;
 
-    /* CONTAINER */
+            transition: .2s;
+        }
 
-    .container{
+        .navbar .nav-link:hover{
 
-        margin-top: 30px;
-    }
+            color: white !important;
+        }
 
-    /* CARDS */
+        /* CONTAINER */
 
-    .card{
+        .container{
 
-        border: none;
+            margin-top: 30px;
+        }
 
-        border-radius: 18px;
+        /* CARDS */
 
-        background: white;
+        .card{
 
-        box-shadow:
-            0 4px 14px rgba(0,0,0,0.06);
+            border: none;
 
-        transition: .2s;
-    }
+            border-radius: 18px;
 
-    .card:hover{
+            background: white;
 
-        transform: translateY(-2px);
-    }
+            box-shadow:
+                0 4px 14px rgba(0,0,0,0.06);
 
-    .card-body{
+            transition: .2s;
+        }
 
-        padding: 28px;
-    }
+        .card:hover{
 
-    /* TABLE */
+            transform: translateY(-2px);
+        }
 
-    .table{
+        .card-body{
 
-        margin-bottom: 0;
-    }
+            padding: 28px;
+        }
 
-    .table thead{
+        /* TABLE */
 
-        background: #f8fafc;
-    }
+        .table{
 
-    .table th{
+            margin-bottom: 0;
+        }
 
-        border-bottom: 2px solid #e2e8f0;
+        .table thead{
 
-        color: #334155;
+            background: #f8fafc;
+        }
 
-        font-weight: 600;
-    }
+        .table th{
 
-    .table td{
+            border-bottom:
+                2px solid #e2e8f0;
 
-        vertical-align: middle;
+            color: #334155;
 
-        padding: 16px 10px;
-    }
+            font-weight: 600;
+        }
 
-    /* BUTTONS */
+        .table td{
 
-    .btn{
+            vertical-align: middle;
 
-        border-radius: 10px;
+            padding: 16px 10px;
+        }
 
-        padding: 10px 18px;
+        /* BUTTONS */
 
-        font-weight: 500;
-    }
+        .btn{
 
-    .btn-primary{
+            border-radius: 10px;
 
-        background: #2563eb;
+            padding: 10px 18px;
 
-        border: none;
-    }
+            font-weight: 500;
+        }
 
-    .btn-primary:hover{
+        .btn-primary{
 
-        background: #1d4ed8;
-    }
+            background: #2563eb;
 
-    .btn-danger{
+            border: none;
+        }
 
-        border: none;
-    }
+        .btn-primary:hover{
 
-    .btn-warning{
+            background: #1d4ed8;
+        }
 
-        border: none;
-        color: white;
-    }
+        .btn-danger{
 
-    /* BADGES */
+            border: none;
+        }
 
-    .badge{
+        .btn-warning{
 
-        padding: 8px 12px;
+            border: none;
 
-        border-radius: 8px;
+            color: white;
+        }
 
-        font-size: 12px;
-    }
+        /* BADGES */
 
-    /* TITLES */
+        .badge{
 
-    h1,h2,h3,h4,h5{
+            padding: 8px 12px;
 
-        font-weight: 700;
-    }
+            border-radius: 8px;
 
-    /* QUICK ACTION */
+            font-size: 12px;
+        }
 
-    .quick-btn{
+        /* TITLES */
 
-        min-width: 180px;
-    }
+        h1,h2,h3,h4,h5{
 
-</style>
+            font-weight: 700;
+        }
+
+        /* QUICK ACTION */
+
+        .quick-btn{
+
+            min-width: 180px;
+        }
+
+    </style>
+
 </head>
+
 <body>

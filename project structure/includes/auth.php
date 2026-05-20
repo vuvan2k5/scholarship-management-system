@@ -73,7 +73,7 @@ function currentUserId(): ?int {
 
 function currentUserName(): string {
 
-    return $_SESSION['user_name'] ?? 'Người dùng';
+    return $_SESSION['user_name'] ?? 'User';
 }
 
 /**
@@ -126,14 +126,14 @@ function requireRole(string ...$roles): void {
 
                 <div class="alert alert-danger">
 
-                    <h4>403 – Không có quyền truy cập</h4>
+                    <h4>403 – Access Denied</h4>
 
-                    <p>Bạn không có quyền xem trang này.</p>
+                    <p>You do not have permission to access this page.</p>
 
                     <a href="' . BASE_URL . '/index.php"
                        class="btn btn-primary">
 
-                       Về trang chủ
+                       Back to Home
 
                     </a>
 

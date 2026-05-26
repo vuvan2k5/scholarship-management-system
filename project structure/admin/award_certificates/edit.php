@@ -1,35 +1,132 @@
 <?php
-require_once "../../config/database.php";
+// ============================================================
+// admin/award_certificates/edit.php
+// ============================================================
 
-$sql = "SELECT * FROM award_certificates ORDER BY id DESC";
-$result = mysqli_query($conn, $sql);
+$pageTitle = 'Edit Award Certificate';
+
+require_once '../../config/db.php';
+require_once '../../includes/auth.php';
+
+requireLogin();
+requireRole('admin');
+
+$pdo = getDB();
+$id  = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+$stmt = $pdo->prepare("SELECT * FROM award_certificates WHERE id = ?");
+$stmt->execute([$id]);
+$row = $stmt->fetch();
+
+if (!$row) {
+    require_once '../../includes/header.php';
+    require_once '../../includes/navbar.php';
+    echo '<div class="container py-5"><div class="alert alert-danger">Certificate record not found.</div></div>';
+    require_once '../../includes/footer.php';
+    exit;
+}
+
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $application_id   = trim($_POST['application_id']);
+    $certificate_code = trim($_POST['certificate_code']);
+    $issued_at        = trim($_POST['issued_at']);
+    $file_path        = trim($_POST['file_path']);
+
+    if (empty($application_id) || empty($certificate_code)) {
+        $error = 'Please fill in all required fields.';
+    } else {
+        $update = $pdo->prepare("
+            UPDATE award_certificates
+            SET application_id   = ?,
+                certificate_code = ?,
+                issued_at        = ?,
+                file_path        = ?
+            WHERE id = ?
+        ");
+        $update->execute([
+            $application_id,
+            $certificate_code,
+            $issued_at !== '' ? $issued_at : null,
+            $file_path !== '' ? $file_path : null,
+            $id,
+        ]);
+        header('Location: index.php');
+        exit;
+    }
+}
+
+// Fetch applications for dropdown
+$apps = $pdo->query("
+    SELECT a.id, u.full_name, sp.name AS program_name
+    FROM applications a
+    JOIN users u ON a.student_id = u.id
+    JOIN scholarship_programs sp ON a.program_id = sp.id
+    ORDER BY a.id DESC
+")->fetchAll();
+
+$issuedAtValue = !empty($row['issued_at']) ? date('Y-m-d\TH:i', strtotime($row['issued_at'])) : '';
+
+require_once '../../includes/header.php';
+require_once '../../includes/navbar.php';
 ?>
 
-<h2>Award Certificates Management</h2>
+<div class="container py-4">
+    <!-- PAGE HEADER -->
+    <div class="mb-4">
+        <h1 class="page-title">Edit Award Certificate</h1>
+        <p class="page-subtitle">Modify issued certificate details</p>
+    </div>
 
-<a href="create.php">Add Award Certificate</a>
+    <!-- ALERTS -->
+    <?php if ($error): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?= e($error) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
 
-<table border="1" cellpadding="10" cellspacing="0">
-    <tr>
-        <th>ID</th>
-        <th>Application ID</th>
-        <th>Certificate Code</th>
-        <th>Issued At</th>
-        <th>File Path</th>
-        <th>Action</th>
-    </tr>
+    <!-- FORM -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Select Application <span class="text-danger">*</span></label>
+                        <select name="application_id" class="form-select" required>
+                            <?php foreach ($apps as $app): ?>
+                                <option value="<?= e($app['id']) ?>" <?= $row['application_id'] == $app['id'] ? 'selected' : '' ?>>
+                                    #<?= e($app['id']) ?> - <?= e($app['full_name']) ?> (<?= e($app['program_name']) ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
 
-    <?php while ($row = mysqli_fetch_assoc($result)) { ?>
-        <tr>
-            <td><?= $row['id'] ?></td>
-            <td><?= $row['application_id'] ?></td>
-            <td><?= $row['certificate_code'] ?></td>
-            <td><?= $row['issued_at'] ?></td>
-            <td><?= $row['file_path'] ?></td>
-            <td>
-                <a href="edit.php?id=<?= $row['id'] ?>">Edit</a> |
-                <a href="delete.php?id=<?= $row['id'] ?>" onclick="return confirm('Delete this certificate?')">Delete</a>
-            </td>
-        </tr>
-    <?php } ?>
-</table>
+                    <div class="mb-3">
+                        <label class="form-label">Certificate Code <span class="text-danger">*</span></label>
+                        <input type="text" name="certificate_code" class="form-control" value="<?= e($row['certificate_code']) ?>" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Issued At</label>
+                            <input type="datetime-local" name="issued_at" class="form-control" value="<?= e($issuedAtValue) ?>">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Certificate PDF Link / Path</label>
+                            <input type="text" name="file_path" class="form-control" value="<?= e($row['file_path']) ?>" placeholder="e.g. /uploads/certs/cert_01.pdf">
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">Update Certificate</button>
+                        <a href="index.php" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php require_once '../../includes/footer.php'; ?>

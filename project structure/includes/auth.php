@@ -34,10 +34,14 @@ function requireLogin(): void {
 
     if (!isLoggedIn()) {
 
-        $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
+        // Avoid redirect loop if already on login page
+        $loginUrl = BASE_URL . '/login.php';
+        $currentUri = $_SERVER['REQUEST_URI'] ?? '';
+        if (strpos($currentUri, '/login.php') === false) {
+            $_SESSION['redirect_after_login'] = $currentUri;
+        }
 
-        header('Location: ' . BASE_URL . '/login.php');
-
+        header('Location: ' . $loginUrl);
         exit;
     }
 }
@@ -48,12 +52,17 @@ function requireLogin(): void {
 
 /**
  * Lấy role hiện tại của người dùng.
- * Trả về: 'admin' | 'student' | 'council' | null
+ * Trả về: 'admin' | 'student' | 'reviewer' | null
  */
 
 function currentRole(): ?string {
-
-    return $_SESSION['role'] ?? null;
+    $role = $_SESSION['role'] ?? null;
+    // Normalize legacy 'council' to 'reviewer' transparently
+    if ($role === 'council') {
+        $_SESSION['role'] = 'reviewer';
+        return 'reviewer';
+    }
+    return $role;
 }
 
 /**
@@ -73,7 +82,7 @@ function currentUserId(): ?int {
 
 function currentUserName(): string {
 
-    return $_SESSION['user_name'] ?? 'Người dùng';
+    return $_SESSION['user_name'] ?? 'User';
 }
 
 /**
@@ -95,12 +104,16 @@ function isStudent(): bool {
 }
 
 /**
- * Kiểm tra có phải Council (Hội đồng) không.
+ * Kiểm tra có phải Reviewer không.
  */
 
-function isCouncil(): bool {
+function isReviewer(): bool {
+    return currentRole() === 'reviewer';
+}
 
-    return currentRole() === 'council';
+// Keep isCouncil() as alias for backward compatibility
+function isCouncil(): bool {
+    return currentRole() === 'reviewer';
 }
 
 /**
@@ -109,7 +122,7 @@ function isCouncil(): bool {
  *
  * Ví dụ:
  *   requireRole('admin');
- *   requireRole('admin', 'council');
+ *   requireRole('admin', 'reviewer');
  */
 
 function requireRole(string ...$roles): void {
@@ -120,28 +133,33 @@ function requireRole(string ...$roles): void {
 
         http_response_code(403);
 
-        include BASE_PATH . '/includes/header.php';
-
-        echo '<div class="container mt-5">
-
-                <div class="alert alert-danger">
-
-                    <h4>403 – Không có quyền truy cập</h4>
-
-                    <p>Bạn không có quyền xem trang này.</p>
-
-                    <a href="' . BASE_URL . '/index.php"
-                       class="btn btn-primary">
-
-                       Về trang chủ
-
-                    </a>
-
-                </div>
-
-              </div>';
-
-        include BASE_PATH . '/includes/footer.php';
+        // Render a self-contained 403 page (no sidebar needed)
+        echo '<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>403 – Access Denied</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background:#f1f5f9; font-family: system-ui, sans-serif; }
+    .box { max-width:480px; margin:100px auto; background:#fff; border-radius:16px;
+           padding:40px; box-shadow:0 4px 20px rgba(0,0,0,.08); text-align:center; }
+    .icon { font-size:56px; margin-bottom:16px; }
+    h2 { font-weight:700; color:#0f172a; }
+    p  { color:#64748b; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="icon">🔒</div>
+    <h2>403 – Access Denied</h2>
+    <p>You do not have permission to view this page.</p>
+    <a href="' . BASE_URL . '/index.php" class="btn btn-primary mt-2">Go to Home</a>
+    <a href="' . BASE_URL . '/logout.php" class="btn btn-outline-secondary mt-2 ms-2">Sign Out</a>
+  </div>
+</body>
+</html>';
 
         exit;
     }

@@ -1,121 +1,106 @@
 <?php
+// ============================================================
+// admin/eligibility_results/create.php
+// ============================================================
 
-include '../../config/db.php';
+$pageTitle = 'Create Eligibility Result';
+
+require_once '../../config/db.php';
+require_once '../../includes/auth.php';
+
+requireLogin();
+requireRole('admin');
 
 $pdo = getDB();
+$error = "";
+
+// Fetch all applications
+$apps = $pdo->query("
+    SELECT a.id, u.full_name, sp.name AS program_name 
+    FROM applications a 
+    JOIN users u ON a.student_id = u.id 
+    JOIN scholarship_programs sp ON a.program_id = sp.id 
+    ORDER BY a.id DESC
+")->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
     $application_id = $_POST['application_id'];
-    $is_passed      = $_POST['is_passed'];
-    $reason         = $_POST['reason'];
+    $is_passed = $_POST['is_passed'];
+    $reason = trim($_POST['reason']);
 
-    $sql = "
-        INSERT INTO eligibility_results
-        (
-            application_id,
-            is_passed,
-            reason
-        )
-        VALUES
-        (
-            ?,
-            ?,
-            ?
-        )
-    ";
+    if (empty($application_id)) {
+        $error = "Please select an application.";
+    } else {
+        $sql = "INSERT INTO eligibility_results (application_id, is_passed, reason) VALUES (?, ?, ?)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$application_id, $is_passed, $reason]);
 
-    $stmt = $pdo->prepare($sql);
-
-    $stmt->execute([
-        $application_id,
-        $is_passed,
-        $reason
-    ]);
-
-    header("Location: index.php");
-
-    exit;
+        header("Location: index.php");
+        exit;
+    }
 }
+
+require_once '../../includes/header.php';
+require_once '../../includes/navbar.php';
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
+<div class="container py-4">
+    <!-- PAGE HEADER -->
+    <div class="mb-4">
+        <h1 class="page-title">Create Eligibility Result</h1>
+        <p class="page-subtitle">Manually record candidate eligibility check outcomes</p>
+    </div>
 
-    <title>Create Eligibility Result</title>
+    <!-- ALERTS -->
+    <?php if ($error): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?= e($error) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
 
-    <style>
+    <!-- FORM -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Select Application <span class="text-danger">*</span></label>
+                        <select name="application_id" class="form-select" required>
+                            <option value="">-- Select Application --</option>
+                            <?php foreach ($apps as $app): ?>
+                                <option value="<?= e($app['id']) ?>">
+                                    #<?= e($app['id']) ?> - <?= e($app['full_name']) ?> (<?= e($app['program_name']) ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
 
-        body{
-            font-family: Arial;
-            padding: 20px;
-        }
+                    <div class="mb-3">
+                        <label class="form-label">Eligibility Status</label>
+                        <select name="is_passed" class="form-select">
+                            <option value="1">PASS (Qualified)</option>
+                            <option value="0">FAIL (Disqualified)</option>
+                        </select>
+                    </div>
 
-        form{
-            width: 400px;
-        }
+                    <div class="mb-4">
+                        <label class="form-label">Reason / Explanation</label>
+                        <textarea name="reason" class="form-control" rows="5" placeholder="Enter rule check details, criteria failed or comments..."></textarea>
+                    </div>
 
-        input,
-        textarea,
-        select{
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-        }
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            Create Result
+                        </button>
+                        <a href="index.php" class="btn btn-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-        button{
-            padding: 10px 20px;
-            background: green;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-    </style>
-
-</head>
-
-<body>
-
-    <h2>Create Eligibility Result</h2>
-
-    <form method="POST">
-
-        <label>Application ID</label>
-
-        <input
-            type="number"
-            name="application_id"
-            required
-        >
-
-        <label>Status</label>
-
-        <select name="is_passed">
-
-            <option value="1">
-                Passed
-            </option>
-
-            <option value="0">
-                Failed
-            </option>
-
-        </select>
-
-        <label>Reason</label>
-
-        <textarea
-            name="reason"
-            rows="5"
-        ></textarea>
-
-        <button type="submit">
-            Create
-        </button>
-
-    </form>
-
-</body>
-</html>
+<?php require_once '../../includes/footer.php'; ?>

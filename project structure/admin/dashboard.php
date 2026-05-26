@@ -1,495 +1,195 @@
 <?php
-
 $pageTitle = 'Admin Dashboard';
 
 require_once '../config/db.php';
-
 require_once '../includes/auth.php';
 
 requireLogin();
-
 requireRole('admin');
 
 require_once '../includes/header.php';
-
 require_once '../includes/navbar.php';
 
 $pdo = getDB();
 
-/* =========================
-   STATISTICS
-========================= */
-
-$totalApplications = $pdo->query("
-    SELECT COUNT(*) FROM applications
+$totalApplications  = $pdo->query("SELECT COUNT(*) FROM applications")->fetchColumn();
+$totalStudents      = $pdo->query("SELECT COUNT(*) FROM student_profiles")->fetchColumn();
+$totalScores        = $pdo->query("SELECT COUNT(*) FROM evaluation_scores")->fetchColumn();
+$totalRankings = $pdo->query("
+    SELECT COUNT(*) 
+    FROM ranking_results
 ")->fetchColumn();
 
-$totalStudents = $pdo->query("
-    SELECT COUNT(*) FROM student_profiles
+$totalDisbursements = $pdo->query("
+    SELECT COUNT(*) 
+    FROM disbursements
 ")->fetchColumn();
 
-$totalScores = $pdo->query("
-    SELECT COUNT(*) FROM evaluation_scores
+$totalReports = $pdo->query("
+    SELECT COUNT(*) 
+    FROM reports
 ")->fetchColumn();
-
-$totalNotifications = $pdo->query("
-    SELECT COUNT(*) FROM notifications
-")->fetchColumn();
-
-/* =========================
-   RECENT APPLICATIONS
-========================= */
+$totalNotifications = $pdo->query("SELECT COUNT(*) FROM notifications")->fetchColumn();
+$pendingApps        = $pdo->query("SELECT COUNT(*) FROM applications WHERE status = 'submitted'")->fetchColumn();
+$approvedApps       = $pdo->query("SELECT COUNT(*) FROM applications WHERE status = 'approved'")->fetchColumn();
 
 $recentApps = $pdo->query("
-    SELECT *
-    FROM applications
-    ORDER BY id DESC
-    LIMIT 5
+    SELECT a.*, u.full_name, sp.name AS program_name
+    FROM applications a
+    JOIN users u ON a.student_id = u.id
+    JOIN scholarship_programs sp ON a.program_id = sp.id
+    ORDER BY a.id DESC LIMIT 8
 ");
-
 ?>
 
-<div class="container py-4">
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Welcome back, <?= e(currentUserName()) ?> 👋</h1>
+    <p class="page-subtitle">Here's what's happening in your scholarship system today.</p>
+  </div>
+  <div class="quick-actions">
+    <a href="applications/index.php" class="btn btn-primary">
+      <i class="bi bi-folder2-open"></i> View Applications
+    </a>
+  </div>
+</div>
 
-    <!-- PAGE HEADER -->
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="bi bi-folder2-open"></i></div>
+      <div class="stat-body">
+        <div class="stat-label">Total Applications</div>
+        <div class="stat-value"><?= e($totalApplications) ?></div>
+        <div class="stat-trend"><?= e($pendingApps) ?> pending review</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-mortarboard"></i></div>
+      <div class="stat-body">
+        <div class="stat-label">Student Profiles</div>
+        <div class="stat-value"><?= e($totalStudents) ?></div>
+        <div class="stat-trend"><?= e($approvedApps) ?> approved</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon yellow"><i class="bi bi-star-half"></i></div>
+      <div class="stat-body">
+        <div class="stat-label">Evaluation Scores</div>
+        <div class="stat-value"><?= e($totalScores) ?></div>
+        <div class="stat-trend">Across all applications</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon red"><i class="bi bi-bell"></i></div>
+      <div class="stat-body">
+        <div class="stat-label">Notifications</div>
+        <div class="stat-value"><?= e($totalNotifications) ?></div>
+        <div class="stat-trend">System-wide</div>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <div class="mb-4">
+<!-- Bottom Row -->
+<div class="row g-3">
 
-        <h2 class="fw-bold">
+  <!-- Recent Applications -->
+  <div class="col-lg-8">
+    <div class="table-card">
+      <div class="table-card-header">
+        <span class="table-card-title">Recent Applications</span>
+        <a href="applications/index.php" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Student</th>
+              <th>Program</th>
+              <th>Status</th>
+              <th>Submitted</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($recentApps as $app): ?>
+              <tr>
+                <td><span class="text-muted">#<?= e($app['id']) ?></span></td>
+                <td><strong><?= e($app['full_name']) ?></strong></td>
+                <td><?= e($app['program_name']) ?></td>
+                <td>
+                  <span class="badge badge-status-<?= e($app['status']) ?>">
+                    <?= ucfirst(e($app['status'])) ?>
+                  </span>
+                </td>
+                <td class="text-muted"><?= e($app['submitted_at']) ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-            Welcome,
-            <?= e(currentUserName()) ?>
+  <!-- Right Column -->
+  <div class="col-lg-4 d-flex flex-column gap-3">
 
-        </h2>
-
-        <p class="text-muted">
-
-            Scholarship Management System Dashboard
-
-        </p>
-
+    <!-- System Status -->
+    <div class="card">
+      <div class="card-body">
+        <div class="card-title mb-3">System Status</div>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <span class="text-muted" style="font-size:13.5px;">Database</span>
+          <span class="badge badge-active"><span class="status-dot online"></span>Online</span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <span class="text-muted" style="font-size:13.5px;">Server</span>
+          <span class="badge badge-active"><span class="status-dot online"></span>Running</span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between">
+          <span class="text-muted" style="font-size:13.5px;">Authentication</span>
+          <span class="badge badge-active"><span class="status-dot online"></span>Active</span>
+        </div>
+      </div>
     </div>
 
-    <!-- STATISTICS CARDS -->
-
-    <div class="row g-4">
-
-        <!-- Applications -->
-
-        <div class="col-md-3">
-
-            <div class="card h-100">
-
-                <div class="card-body">
-
-                    <div class="d-flex justify-content-between">
-
-                        <div>
-
-                            <p class="text-muted mb-2">
-
-                                Applications
-
-                            </p>
-
-                            <h2 class="fw-bold text-primary">
-
-                                <?= e($totalApplications) ?>
-
-                            </h2>
-
-                        </div>
-
-                        <div
-                            class="
-                                bg-primary
-                                text-white
-                                rounded-circle
-                                d-flex
-                                align-items-center
-                                justify-content-center
-                            "
-                            style="
-                                width:60px;
-                                height:60px;
-                                font-size:24px;
-                            "
-                        >
-
-                            📂
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
+    <!-- Quick Actions -->
+    <div class="card">
+      <div class="card-body">
+        <div class="card-title mb-3">Quick Actions</div>
+        <div class="quick-action-grid">
+          <a href="users/index.php" class="quick-action-item">
+            <i class="bi bi-people"></i> Users
+          </a>
+          <a href="applications/index.php" class="quick-action-item">
+            <i class="bi bi-folder2-open"></i> Applications
+          </a>
+          <a href="evaluation_scores/index.php" class="quick-action-item">
+            <i class="bi bi-star-half"></i> Scores
+          </a>
+          <a href="notifications/index.php" class="quick-action-item">
+            <i class="bi bi-bell"></i> Notifications
+          </a>
+          <a href="disbursements/index.php" class="quick-action-item">
+            <i class="bi bi-cash-coin"></i> Disbursements
+          </a>
+          <a href="reports/index.php" class="quick-action-item">
+            <i class="bi bi-graph-up"></i> Reports
+          </a>
         </div>
-
-        <!-- Students -->
-
-        <div class="col-md-3">
-
-            <div class="card h-100">
-
-                <div class="card-body">
-
-                    <div class="d-flex justify-content-between">
-
-                        <div>
-
-                            <p class="text-muted mb-2">
-
-                                Students
-
-                            </p>
-
-                            <h2 class="fw-bold text-success">
-
-                                <?= e($totalStudents) ?>
-
-                            </h2>
-
-                        </div>
-
-                        <div
-                            class="
-                                bg-success
-                                text-white
-                                rounded-circle
-                                d-flex
-                                align-items-center
-                                justify-content-center
-                            "
-                            style="
-                                width:60px;
-                                height:60px;
-                                font-size:24px;
-                            "
-                        >
-
-                            🎓
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- Scores -->
-
-        <div class="col-md-3">
-
-            <div class="card h-100">
-
-                <div class="card-body">
-
-                    <div class="d-flex justify-content-between">
-
-                        <div>
-
-                            <p class="text-muted mb-2">
-
-                                Evaluation Scores
-
-                            </p>
-
-                            <h2 class="fw-bold text-warning">
-
-                                <?= e($totalScores) ?>
-
-                            </h2>
-
-                        </div>
-
-                        <div
-                            class="
-                                bg-warning
-                                text-white
-                                rounded-circle
-                                d-flex
-                                align-items-center
-                                justify-content-center
-                            "
-                            style="
-                                width:60px;
-                                height:60px;
-                                font-size:24px;
-                            "
-                        >
-
-                            ⭐
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- Notifications -->
-
-        <div class="col-md-3">
-
-            <div class="card h-100">
-
-                <div class="card-body">
-
-                    <div class="d-flex justify-content-between">
-
-                        <div>
-
-                            <p class="text-muted mb-2">
-
-                                Notifications
-
-                            </p>
-
-                            <h2 class="fw-bold text-danger">
-
-                                <?= e($totalNotifications) ?>
-
-                            </h2>
-
-                        </div>
-
-                        <div
-                            class="
-                                bg-danger
-                                text-white
-                                rounded-circle
-                                d-flex
-                                align-items-center
-                                justify-content-center
-                            "
-                            style="
-                                width:60px;
-                                height:60px;
-                                font-size:24px;
-                            "
-                        >
-
-                            🔔
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
+      </div>
     </div>
 
-    <!-- SECOND ROW -->
-
-    <div class="row mt-4">
-
-        <!-- RECENT APPLICATIONS -->
-
-        <div class="col-lg-8">
-
-            <div class="card">
-
-                <div class="card-body">
-
-                    <h4 class="mb-4">
-
-                        Recent Applications
-
-                    </h4>
-
-                    <div class="table-responsive">
-
-                        <table class="table table-hover align-middle">
-
-                            <thead>
-
-                                <tr>
-
-                                    <th>ID</th>
-
-                                    <th>Status</th>
-
-                                    <th>Submitted At</th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                                <?php foreach ($recentApps as $app): ?>
-
-                                    <tr>
-
-                                        <td>
-
-                                            #<?= e($app['id']) ?>
-
-                                        </td>
-
-                                        <td>
-
-                                            <span class="badge bg-primary">
-
-                                                <?= e($app['status']) ?>
-
-                                            </span>
-
-                                        </td>
-
-                                        <td>
-
-                                            <?= e($app['submitted_at']) ?>
-
-                                        </td>
-
-                                    </tr>
-
-                                <?php endforeach; ?>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- SYSTEM STATUS -->
-
-        <div class="col-lg-4">
-
-            <div class="card">
-
-                <div class="card-body">
-
-                    <h4 class="mb-4">
-
-                        System Status
-
-                    </h4>
-
-                    <div class="mb-3">
-
-                        <strong>
-
-                            Database:
-
-                        </strong>
-
-                        <span class="badge bg-success">
-
-                            Online
-
-                        </span>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <strong>
-
-                            Server:
-
-                        </strong>
-
-                        <span class="badge bg-primary">
-
-                            Running
-
-                        </span>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <strong>
-
-                            Authentication:
-
-                        </strong>
-
-                        <span class="badge bg-success">
-
-                            Active
-
-                        </span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- QUICK ACTIONS -->
-
-    <div class="card mt-4">
-
-        <div class="card-body">
-
-            <h4 class="mb-4">
-
-                Quick Actions
-
-            </h4>
-
-            <div class="d-flex gap-3 flex-wrap">
-
-                <a
-                    href="users/index.php"
-                    class="btn btn-primary"
-                >
-                    Manage Users
-                </a>
-
-                <a
-                    href="applications/index.php"
-                    class="btn btn-success"
-                >
-                    Applications
-                </a>
-
-                <a
-                    href="evaluation_scores/index.php"
-                    class="btn btn-warning"
-                >
-                    Evaluation Scores
-                </a>
-
-                <a
-                    href="notifications/index.php"
-                    class="btn btn-danger"
-                >
-                    Notifications
-                </a>
-
-            </div>
-
-        </div>
-
-    </div>
-
+  </div>
 </div>
 
 <?php require_once '../includes/footer.php'; ?>

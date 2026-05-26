@@ -1,24 +1,33 @@
 <?php
-
-require_once __DIR__ . '/../../config/db.php';
-require_once __DIR__ . '/../../includes/header.php';
+// ============================================================
+// admin/notifications/edit.php
+// ============================================================
 
 $pageTitle = 'Edit Notification';
+
+require_once '../../config/db.php';
+require_once '../../includes/auth.php';
+
+requireLogin();
+requireRole('admin');
+
 $pdo = getDB();
 $error = '';
-
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
 $stmt = $pdo->prepare('SELECT * FROM notifications WHERE id = ?');
 $stmt->execute([$id]);
 $notification = $stmt->fetch();
 
 if (!$notification) {
-    echo '<div class="alert alert-danger">Notification not found.</div>';
-    require_once __DIR__ . '/../../includes/footer.php';
+    require_once '../../includes/header.php';
+    require_once '../../includes/navbar.php';
+    echo '<div class="container py-5"><div class="alert alert-danger">Notification not found.</div></div>';
+    require_once '../../includes/footer.php';
     exit;
 }
 
-$users = $pdo->query('SELECT id, full_name FROM users ORDER BY full_name')->fetchAll();
+$users = $pdo->query('SELECT id, full_name, role FROM users ORDER BY full_name')->fetchAll();
 
 if (isset($_POST['submit'])) {
     $userId = trim($_POST['user_id']);
@@ -38,54 +47,75 @@ if (isset($_POST['submit'])) {
         exit;
     }
 }
+
+require_once '../../includes/header.php';
+require_once '../../includes/navbar.php';
 ?>
 
-<h2 class="mb-4">Edit Notification</h2>
-
-<?php if ($error): ?>
-    <div class="alert alert-danger"><?= $error ?></div>
-<?php endif; ?>
-
-<form method="POST">
-    <div class="mb-3">
-        <label class="form-label">User</label>
-        <select name="user_id" class="form-control" required>
-            <option value="">Select user</option>
-            <?php foreach ($users as $user): ?>
-                <option value="<?= $user['id'] ?>" <?= $user['id'] == $notification['user_id'] ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($user['full_name']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
+<div class="container py-4">
+    <!-- PAGE HEADER -->
+    <div class="mb-4">
+        <h1 class="page-title">Edit Notification</h1>
+        <p class="page-subtitle">Update notification details and read status</p>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Title</label>
-        <input type="text" name="title" value="<?= htmlspecialchars($notification['title']) ?>" class="form-control" required>
+    <!-- ALERTS -->
+    <?php if ($error): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?= e($error) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
+    <!-- FORM -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Target User <span class="text-danger">*</span></label>
+                        <select name="user_id" class="form-select" required>
+                            <?php foreach ($users as $user): ?>
+                                <option value="<?= $user['id'] ?>" <?= $user['id'] == $notification['user_id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($user['full_name']) ?> (<?= ucfirst($user['role']) ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Notification Title <span class="text-danger">*</span></label>
+                        <input type="text" name="title" value="<?= htmlspecialchars($notification['title']) ?>" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Notification Message <span class="text-danger">*</span></label>
+                        <textarea name="message" class="form-control" rows="4" required><?= htmlspecialchars($notification['message']) ?></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Notification Level/Type</label>
+                        <select name="type" class="form-select">
+                            <option value="info" <?= $notification['type'] === 'info' ? 'selected' : '' ?>>Info (General)</option>
+                            <option value="success" <?= $notification['type'] === 'success' ? 'selected' : '' ?>>Success (Approved/Passed)</option>
+                            <option value="warning" <?= $notification['type'] === 'warning' ? 'selected' : '' ?>>Warning (Pending Action)</option>
+                            <option value="error" <?= $notification['type'] === 'error' ? 'selected' : '' ?>>Error (Rejected/Failed)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4 form-check">
+                        <input type="checkbox" name="is_read" id="is_read" class="form-check-input" value="1" <?= $notification['is_read'] ? 'checked' : '' ?> >
+                        <label class="form-check-label" for="is_read">Mark as read</label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" name="submit" class="btn btn-primary">Update Notification</button>
+                        <a href="index.php" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
+</div>
 
-    <div class="mb-3">
-        <label class="form-label">Message</label>
-        <textarea name="message" class="form-control" required><?= htmlspecialchars($notification['message']) ?></textarea>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Type</label>
-        <select name="type" class="form-control">
-            <option value="info" <?= $notification['type'] === 'info' ? 'selected' : '' ?>>Info</option>
-            <option value="success" <?= $notification['type'] === 'success' ? 'selected' : '' ?>>Success</option>
-            <option value="warning" <?= $notification['type'] === 'warning' ? 'selected' : '' ?>>Warning</option>
-            <option value="error" <?= $notification['type'] === 'error' ? 'selected' : '' ?>>Error</option>
-        </select>
-    </div>
-
-    <div class="mb-3 form-check">
-        <input type="checkbox" name="is_read" id="is_read" class="form-check-input" value="1" <?= $notification['is_read'] ? 'checked' : '' ?> >
-        <label class="form-check-label" for="is_read">Mark as read</label>
-    </div>
-
-    <button type="submit" name="submit" class="btn btn-success">Update Notification</button>
-</form>
-
-<?php require_once __DIR__ . '/../../includes/footer.php'; ?>
-
+<?php require_once '../../includes/footer.php'; ?>

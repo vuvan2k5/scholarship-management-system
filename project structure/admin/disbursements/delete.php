@@ -1,14 +1,19 @@
 <?php
-require_once "../../config/database.php";
+// ============================================================
+// admin/disbursements/delete.php
+// ============================================================
 
-$id = $_GET['id'];
+require_once '../../config/db.php';
+require_once '../../includes/auth.php';
 
-$sql = "DELETE FROM disbursements WHERE id = $id";
+requireLogin();
+requireRole('admin');
 
-if (mysqli_query($conn, $sql)) {
-    header("Location: index.php");
-    exit();
-} else {
-    echo "Error: " . mysqli_error($conn);
-}
-?>
+$pdo = getDB();
+$id  = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+$stmt = $pdo->prepare("DELETE FROM disbursements WHERE id = ?");
+$stmt->execute([$id]);
+
+header('Location: index.php');
+exit;

@@ -1,131 +1,144 @@
-/* =========================
-   GLOBAL ADMIN STYLES
-========================= */
+/* ============================================================
+   admin.css  –  Admin-specific overrides & helpers
+   All base styles live in style.css
+   ============================================================ */
 
-.page-title {
-
-    font-size: 42px;
-
+/* ── Sidebar nav-header (legacy alias) ─────────────────────── */
+.nav-header {
+    font-size: 10px;
     font-weight: 700;
-
-    margin-bottom: 10px;
-
-    color: #0f172a;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .3);
+    padding: 16px 8px 6px;
+    margin-top: 4px;
+    list-style: none;
 }
 
-.page-subtitle {
-
-    color: #64748b;
-
-    margin-bottom: 30px;
+/* ── Status badge helpers (used in PHP badge logic) ─────────── */
+.badge-status-submitted {
+    background: #dbeafe;
+    color: #1d4ed8;
 }
 
-/* =========================
-   TABLES
-========================= */
-
-.table-card {
-
-    background: white;
-
-    border-radius: 20px;
-
-    padding: 20px;
-
-    box-shadow:
-        0 4px 14px rgba(0, 0, 0, 0.06);
+.badge-status-reviewing {
+    background: #fef3c7;
+    color: #92400e;
 }
 
-.table thead {
-
-    background: #f8fafc;
+.badge-status-eligible {
+    background: #d1fae5;
+    color: #065f46;
 }
 
-.table th {
-
-    font-weight: 700;
-
-    color: #334155;
-
-    padding: 18px 12px;
+.badge-status-ineligible {
+    background: #fee2e2;
+    color: #991b1b;
 }
 
-.table td {
-
-    padding: 18px 12px;
-
-    vertical-align: middle;
+.badge-status-approved {
+    background: #d1fae5;
+    color: #065f46;
 }
 
-/* =========================
-   BUTTONS
-========================= */
+.badge-status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
 
+.badge-status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-status-paid {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-status-failed {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-status-active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-status-inactive {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+/* ── Action button min-width ─────────────────────────────────── */
 .btn-action {
-
-    min-width: 90px;
+    min-width: 72px;
 }
 
-.btn-primary {
-
-    background: #2563eb !important;
-
-    border: none !important;
+/* ── System status indicator dots ───────────────────────────── */
+.status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
 }
 
-.btn-success {
-
-    border: none !important;
+.status-dot.online {
+    background: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, .2);
 }
 
-.btn-danger {
-
-    border: none !important;
+.status-dot.offline {
+    background: #dc2626;
 }
 
-.btn-warning {
-
-    border: none !important;
+/* ── Quick action grid ───────────────────────────────────────── */
+.quick-action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
 }
 
-/* =========================
-   BADGES
-========================= */
-
-.badge {
-
-    padding: 8px 12px;
-
-    border-radius: 8px;
-}
-
-/* =========================
-   FORMS
-========================= */
-
-.form-card {
-
-    background: white;
-
-    border-radius: 20px;
-
-    padding: 30px;
-
-    box-shadow:
-        0 4px 14px rgba(0, 0, 0, 0.06);
-}
-
-.form-control,
-.form-select {
-
-    border-radius: 12px;
-
-    padding: 12px;
-}
-
-label {
-
+.quick-action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 18px 12px;
+    background: var(--gray-50);
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--gray-700);
+    font-size: 13px;
     font-weight: 600;
+    transition: var(--transition);
+    text-align: center;
+}
 
-    margin-bottom: 8px;
+.quick-action-item i {
+    font-size: 22px;
+    color: var(--primary);
+}
+
+.quick-action-item:hover {
+    background: var(--primary-light);
+    border-color: var(--primary-muted);
+    color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* ── View detail table (eligibility_results/view.php) ────────── */
+.detail-table th {
+    width: 200px;
+    color: var(--gray-600);
+    font-weight: 600;
+    background: var(--gray-50);
+}
+
+.detail-table td {
+    color: var(--gray-800);
 }

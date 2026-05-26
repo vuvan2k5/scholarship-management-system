@@ -1,6 +1,13 @@
-﻿<?php
+<?php
+// ============================================================
+// admin/student_profiles/delete.php
+// ============================================================
 
-require_once __DIR__ . '/../../config/db.php';
+require_once '../../config/db.php';
+require_once '../../includes/auth.php';
+
+requireLogin();
+requireRole('admin');
 
 $pdo = getDB();
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
@@ -12,4 +19,3 @@ if ($id) {
 
 header('Location: index.php');
 exit;
-?>

@@ -1,35 +1,68 @@
 <?php
-require_once "../../config/database.php";
+// ============================================================
+// admin/award_certificates/index.php
+// ============================================================
 
-$sql = "SELECT * FROM award_certificates ORDER BY id DESC";
-$result = mysqli_query($conn, $sql);
+$pageTitle = 'Award Certificates';
+
+require_once '../../config/db.php';
+require_once '../../includes/auth.php';
+
+requireLogin();
+requireRole('admin');
+
+require_once '../../includes/header.php';
+require_once '../../includes/navbar.php';
+
+$pdo = getDB();
+
+$sql = "
+    SELECT ac.*, a.id AS application_number, u.full_name AS student_name, sp.name AS program_name
+    FROM award_certificates ac
+    INNER JOIN applications a ON ac.application_id = a.id
+    INNER JOIN users u ON a.student_id = u.id
+    INNER JOIN scholarship_programs sp ON a.program_id = sp.id
+    ORDER BY ac.id DESC
+";
+$certificates = $pdo->query($sql)->fetchAll();
 ?>
 
-<h2>Award Certificates Management</h2>
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Award Certificates</h1>
+    <p class="page-subtitle">Manage official scholarship certificates issued to approved candidates.</p>
+  </div>
+  <a href="create.php" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Issue Certificate</a>
+</div>
 
-<a href="create.php">Add Award Certificate</a>
-
-<table border="1" cellpadding="10" cellspacing="0">
-    <tr>
-        <th>ID</th>
-        <th>Application ID</th>
-        <th>Certificate Code</th>
-        <th>Issued At</th>
-        <th>File Path</th>
-        <th>Action</th>
-    </tr>
-
-    <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+<div class="table-card">
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
         <tr>
-            <td><?= $row['id'] ?></td>
-            <td><?= $row['application_id'] ?></td>
-            <td><?= $row['certificate_code'] ?></td>
-            <td><?= $row['issued_at'] ?></td>
-            <td><?= $row['file_path'] ?></td>
-            <td>
-                <a href="edit.php?id=<?= $row['id'] ?>">Edit</a> |
-                <a href="delete.php?id=<?= $row['id'] ?>" onclick="return confirm('Delete this certificate?')">Delete</a>
-            </td>
+          <th>ID</th><th>Application</th><th>Student</th><th>Program</th><th>Certificate Code</th><th>Issued At</th><th>Actions</th>
         </tr>
-    <?php } ?>
-</table>
+      </thead>
+      <tbody>
+        <?php foreach ($certificates as $row): ?>
+          <tr>
+            <td><span class="text-muted">#<?= e($row['id']) ?></span></td>
+            <td><a href="../applications/index.php?search=<?= e($row['application_id']) ?>" class="fw-semibold text-primary">#<?= e($row['application_id']) ?></a></td>
+            <td><strong><?= e($row['student_name']) ?></strong></td>
+            <td><?= e($row['program_name']) ?></td>
+            <td><code style="font-size:12px;background:#f1f5f9;padding:2px 8px;border-radius:4px;"><?= e($row['certificate_code']) ?></code></td>
+            <td class="text-muted"><?= e($row['issued_at']) ?></td>
+            <td>
+              <div class="d-flex gap-2">
+                <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-warning btn-action"><i class="bi bi-pencil"></i> Edit</a>
+                <a href="delete.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-danger btn-action" onclick="return confirm('Delete this certificate?')"><i class="bi bi-trash"></i> Delete</a>
+              </div>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<?php require_once '../../includes/footer.php'; ?>

@@ -1,135 +1,74 @@
 <?php
+$pageTitle = 'Scholarship Programs';
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+require_once '../../config/db.php';
+require_once '../../includes/auth.php';
 
-include '../../config/db.php';
+requireLogin();
+requireRole('admin');
 
-$pdo = getDB();
+require_once '../../includes/header.php';
+require_once '../../includes/navbar.php';
 
-$sql = "SELECT * FROM scholarship_programs";
-
-$stmt = $pdo->query($sql);
-
-$programs = $stmt->fetchAll();
-
+$pdo      = getDB();
+$programs = $pdo->query("SELECT * FROM scholarship_programs ORDER BY id DESC")->fetchAll();
 ?>
 
-<!DOCTYPE html>
-<html>
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Scholarship Programs</h1>
+    <p class="page-subtitle">Manage scholarship program specifications and availability.</p>
+  </div>
+  <a href="create.php" class="btn btn-primary">
+    <i class="bi bi-plus-lg"></i> Add Program
+  </a>
+</div>
 
-<head>
-    <title>Scholarship Programs</title>
+<div class="table-card">
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Budget</th>
+          <th>Slots</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ($programs as $p): ?>
+          <tr>
+            <td><span class="text-muted">#<?= e($p['id']) ?></span></td>
+            <td><strong><?= e($p['name']) ?></strong></td>
+            <td class="text-success fw-semibold"><?= number_format($p['budget']) ?> VND</td>
+            <td><?= e($p['slots']) ?></td>
+            <td class="text-muted"><?= e($p['start_date']) ?></td>
+            <td class="text-muted"><?= e($p['end_date']) ?></td>
+            <td>
+              <span class="badge badge-status-<?= e($p['status']) ?>">
+                <?= ucfirst(e($p['status'])) ?>
+              </span>
+            </td>
+            <td>
+              <div class="d-flex gap-2">
+                <a href="edit.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-warning btn-action">
+                  <i class="bi bi-pencil"></i> Edit
+                </a>
+                <a href="delete.php?id=<?= $p['id'] ?>" class="btn btn-sm btn-danger btn-action"
+                   onclick="return confirm('Delete this program?')">
+                  <i class="bi bi-trash"></i> Delete
+                </a>
+              </div>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-    <style>
-
-        body {
-            font-family: Arial, sans-serif;
-            margin: 30px;
-        }
-
-        h1 {
-            color: #2563EB;
-        }
-
-        a {
-            text-decoration: none;
-            color: blue;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        table th,
-        table td {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: center;
-        }
-
-        table th {
-            background-color: #2563EB;
-            color: white;
-        }
-
-        .add-btn {
-            display: inline-block;
-            margin-top: 10px;
-            margin-bottom: 10px;
-            padding: 10px 15px;
-            background-color: #2563EB;
-            color: white;
-            border-radius: 5px;
-        }
-
-    </style>
-
-</head>
-
-<body>
-
-<h1>Scholarship Programs Management</h1>
-
-<a class="add-btn" href="create.php">
-    Add New Scholarship Program
-</a>
-
-<table>
-
-    <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Budget</th>
-        <th>Slots</th>
-        <th>Start Date</th>
-        <th>End Date</th>
-        <th>Status</th>
-        <th>Actions</th>
-    </tr>
-
-<?php foreach($programs as $program) { ?>
-
-<tr>
-
-    <td><?= $program['id'] ?></td>
-
-    <td><?= $program['name'] ?></td>
-
-    <td><?= number_format($program['budget']) ?> VND</td>
-
-    <td><?= $program['slots'] ?></td>
-
-    <td><?= $program['start_date'] ?></td>
-
-    <td><?= $program['end_date'] ?></td>
-
-    <td><?= $program['status'] ?></td>
-
-    <td>
-
-        <a href="edit.php?id=<?= $program['id'] ?>">
-            Edit
-        </a>
-
-        |
-
-        <a href="delete.php?id=<?= $program['id'] ?>"
-           onclick="return confirm('Delete this scholarship program?')">
-
-           Delete
-
-        </a>
-
-    </td>
-
-</tr>
-
-<?php } ?>
-
-</table>
-
-</body>
-</html>
+<?php require_once '../../includes/footer.php'; ?>

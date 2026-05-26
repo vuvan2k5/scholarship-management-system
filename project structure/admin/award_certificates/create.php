@@ -1,42 +1,112 @@
 <?php
-require_once "../../config/database.php";
+// ============================================================
+// admin/award_certificates/create.php
+// ============================================================
 
-if (isset($_POST['submit'])) {
-    $application_id = $_POST['application_id'];
-    $certificate_code = $_POST['certificate_code'];
-    $issued_at = $_POST['issued_at'];
-    $file_path = $_POST['file_path'];
+$pageTitle = 'Issue Certificate';
 
-    $sql = "INSERT INTO award_certificates 
-            (application_id, certificate_code, issued_at, file_path)
-            VALUES 
-            ('$application_id', '$certificate_code', '$issued_at', '$file_path')";
+require_once '../../config/db.php';
+require_once '../../includes/auth.php';
 
-    if (mysqli_query($conn, $sql)) {
-        header("Location: index.php");
-        exit();
+requireLogin();
+requireRole('admin');
+
+$pdo = getDB();
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $application_id   = trim($_POST['application_id']);
+    $certificate_code = trim($_POST['certificate_code']);
+    $issued_at        = trim($_POST['issued_at']);
+    $file_path        = trim($_POST['file_path']);
+
+    if (empty($application_id) || empty($certificate_code)) {
+        $error = 'Please fill in all required fields.';
     } else {
-        echo "Error: " . mysqli_error($conn);
+        $stmt = $pdo->prepare("
+            INSERT INTO award_certificates (application_id, certificate_code, issued_at, file_path)
+            VALUES (?, ?, ?, ?)
+        ");
+        $stmt->execute([
+            $application_id,
+            $certificate_code,
+            $issued_at !== '' ? $issued_at : null,
+            $file_path !== '' ? $file_path : null,
+        ]);
+        header('Location: index.php');
+        exit;
     }
 }
+
+// Fetch applications for dropdown
+$apps = $pdo->query("
+    SELECT a.id, u.full_name, sp.name AS program_name
+    FROM applications a
+    JOIN users u ON a.student_id = u.id
+    JOIN scholarship_programs sp ON a.program_id = sp.id
+    ORDER BY a.id DESC
+")->fetchAll();
+
+require_once '../../includes/header.php';
+require_once '../../includes/navbar.php';
 ?>
 
-<h2>Add Award Certificate</h2>
+<div class="container py-4">
+    <!-- PAGE HEADER -->
+    <div class="mb-4">
+        <h1 class="page-title">Issue Award Certificate</h1>
+        <p class="page-subtitle">Officially issue a scholarship award certificate to an applicant</p>
+    </div>
 
-<form method="POST">
-    <label>Application ID</label><br>
-    <input type="number" name="application_id" required><br><br>
+    <!-- ALERTS -->
+    <?php if ($error): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?= e($error) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
 
-    <label>Certificate Code</label><br>
-    <input type="text" name="certificate_code" required><br><br>
+    <!-- FORM -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Select Application <span class="text-danger">*</span></label>
+                        <select name="application_id" class="form-select" required>
+                            <option value="">-- Select Application --</option>
+                            <?php foreach ($apps as $app): ?>
+                                <option value="<?= e($app['id']) ?>">
+                                    #<?= e($app['id']) ?> - <?= e($app['full_name']) ?> (<?= e($app['program_name']) ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
 
-    <label>Issued At</label><br>
-    <input type="datetime-local" name="issued_at"><br><br>
+                    <div class="mb-3">
+                        <label class="form-label">Certificate Code <span class="text-danger">*</span></label>
+                        <input type="text" name="certificate_code" class="form-control" placeholder="e.g. CERT-2026-0001" required>
+                    </div>
 
-    <label>File Path</label><br>
-    <input type="text" name="file_path"><br><br>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Issued At</label>
+                            <input type="datetime-local" name="issued_at" class="form-control" value="<?= date('Y-m-d\TH:i') ?>">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Certificate PDF Link / Path</label>
+                            <input type="text" name="file_path" class="form-control" placeholder="e.g. /uploads/certs/cert_01.pdf">
+                        </div>
+                    </div>
 
-    <button type="submit" name="submit">Save</button>
-</form>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">Issue Certificate</button>
+                        <a href="index.php" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-<a href="index.php">Back</a>
+<?php require_once '../../includes/footer.php'; ?>

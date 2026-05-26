@@ -1,38 +1,26 @@
 <?php
+// ============================================================
+// admin/eligibility_rules/delete.php
+// ============================================================
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+require_once '../../config/db.php';
+require_once '../../includes/auth.php';
 
-include '../../config/db.php';
+requireLogin();
+requireRole('admin');
 
 $pdo = getDB();
 
-// Check if ID exists
-
-if(!isset($_GET['id'])) {
-
+if (!isset($_GET['id'])) {
     die("Invalid request.");
-
 }
 
-$id = $_GET['id'];
+$id = (int)$_GET['id'];
 
-// Delete eligibility rule
-
-$sql = "
-    DELETE FROM eligibility_rules
-    WHERE id = :id
-";
-
+// Delete rule
+$sql = "DELETE FROM eligibility_rules WHERE id = :id";
 $stmt = $pdo->prepare($sql);
-
-$stmt->execute([
-    ':id' => $id
-]);
-
-// Redirect back
+$stmt->execute([':id' => $id]);
 
 header("Location: index.php");
 exit;
-
-?>

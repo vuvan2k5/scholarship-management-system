@@ -1,11 +1,23 @@
 <?php
+// ============================================================
+// admin/applications/create.php
+// ============================================================
 
-require_once __DIR__ . '/../../config/db.php';
-require_once __DIR__ . '/../../includes/header.php';
+$pageTitle = 'Create Application';
+
+require_once '../../config/db.php';
+require_once '../../includes/auth.php';
+
+requireLogin();
+requireRole('admin');
+
+require_once '../../includes/header.php';
+require_once '../../includes/navbar.php';
 
 $pdo = getDB();
 $error = '';
-$students = $pdo->query('SELECT id, full_name FROM users ORDER BY full_name')->fetchAll(PDO::FETCH_ASSOC);
+
+$students = $pdo->query('SELECT id, full_name FROM users WHERE role = "student" ORDER BY full_name')->fetchAll(PDO::FETCH_ASSOC);
 $programs = $pdo->query('SELECT id, name FROM scholarship_programs ORDER BY name')->fetchAll(PDO::FETCH_ASSOC);
 
 if (isset($_POST['submit'])) {
@@ -32,38 +44,58 @@ if (isset($_POST['submit'])) {
 }
 ?>
 
-<h2 class="mb-4">Create Application</h2>
-
-<?php if ($error): ?>
-    <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-<?php endif; ?>
-
-<form method="POST">
-    <div class="mb-3">
-        <label class="form-label">Student</label>
-        <select name="student_id" class="form-control" required>
-            <option value="">Select student</option>
-            <?php foreach ($students as $student): ?>
-                <option value="<?= $student['id'] ?>" <?= isset($_POST['student_id']) && intval($_POST['student_id']) === intval($student['id']) ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($student['full_name']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
+<div class="container py-4">
+    <!-- PAGE HEADER -->
+    <div class="mb-4">
+        <h1 class="page-title">Create Application</h1>
+        <p class="page-subtitle">Submit a scholarship application record manually on behalf of a student</p>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Program</label>
-        <select name="program_id" class="form-control" required>
-            <option value="">Select program</option>
-            <?php foreach ($programs as $program): ?>
-                <option value="<?= $program['id'] ?>" <?= isset($_POST['program_id']) && intval($_POST['program_id']) === intval($program['id']) ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($program['name']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
+    <!-- ALERTS -->
+    <?php if ($error): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?= e($error) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    <?php endif; ?>
+
+    <!-- FORM -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Student <span class="text-danger">*</span></label>
+                        <select name="student_id" class="form-select" required>
+                            <option value="">Select student</option>
+                            <?php foreach ($students as $student): ?>
+                                <option value="<?= $student['id'] ?>" <?= isset($_POST['student_id']) && intval($_POST['student_id']) === intval($student['id']) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($student['full_name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Program <span class="text-danger">*</span></label>
+                        <select name="program_id" class="form-select" required>
+                            <option value="">Select program</option>
+                            <?php foreach ($programs as $program): ?>
+                                <option value="<?= $program['id'] ?>" <?= isset($_POST['program_id']) && intval($_POST['program_id']) === intval($program['id']) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($program['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" name="submit" class="btn btn-primary">Create Application</button>
+                        <a href="index.php" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
+</div>
 
-    <button type="submit" name="submit" class="btn btn-primary">Submit</button>
-</form>
-
-<?php require_once __DIR__ . '/../../includes/footer.php'; ?>
+<?php require_once '../../includes/footer.php'; ?>

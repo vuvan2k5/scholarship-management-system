@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS applications (
 -- 6. student_profiles – Thông tin sinh viên phục vụ scoring
 CREATE TABLE IF NOT EXISTS student_profiles (
     id                INT(11) AUTO_INCREMENT PRIMARY KEY,
-    user_id           INT(11) NOT NULL UNIQUE,
+    student_id        INT(11) NOT NULL UNIQUE,
     faculty           VARCHAR(100),
     major             VARCHAR(100),
     gpa               DECIMAL(3,2) NOT NULL DEFAULT 0.00,
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS student_profiles (
     failed_subjects   INT(11) DEFAULT 0 COMMENT 'Số môn thi lại / trượt',
     created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- 8. evaluation_scores – Điểm từng tiêu chí do reviewer chấm

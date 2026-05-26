@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 function processApplicationScores(PDO $pdo, int $applicationId): void {
     $statsSql = "SELECT COUNT(DISTINCT es.criteria_id) AS scored_count, SUM(es.score) AS total_score

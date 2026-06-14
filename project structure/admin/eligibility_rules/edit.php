@@ -1,9 +1,9 @@
 <?php
 // ============================================================
-// admin/evaluation_scores/edit.php
+// admin/eligibility_rules/edit.php
 // ============================================================
 
-$pageTitle = 'Edit Evaluation Score';
+$pageTitle = 'Edit Eligibility Rule';
 
 require_once '../../config/db.php';
 require_once '../../includes/auth.php';
@@ -11,71 +11,50 @@ require_once '../../includes/auth.php';
 requireLogin();
 requireRole('admin');
 
-include 'helpers.php';
-
 $pdo = getDB();
-$error = '';
+$error = "";
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-$scoreStmt = $pdo->prepare('SELECT * FROM evaluation_scores WHERE id = ?');
-$scoreStmt->execute([$id]);
-$scoreData = $scoreStmt->fetch();
+// Fetch existing rule
+$stmt = $pdo->prepare("SELECT * FROM eligibility_rules WHERE id = ?");
+$stmt->execute([$id]);
+$rule = $stmt->fetch();
 
-if (!$scoreData) {
+if (!$rule) {
     require_once '../../includes/header.php';
     require_once '../../includes/navbar.php';
-    echo '<div class="container py-5"><div class="alert alert-danger">Score record not found.</div></div>';
+    echo '<div class="container py-5"><div class="alert alert-danger">Eligibility rule not found.</div></div>';
     require_once '../../includes/footer.php';
     exit;
 }
 
-$applications = $pdo->query(
-    "SELECT a.id, u.full_name AS student_name, s.name AS program_name
-      FROM applications a
-      JOIN users u ON a.student_id = u.id
-      JOIN scholarship_programs s ON a.program_id = s.id
-      ORDER BY a.id DESC"
-)->fetchAll();
-$criteria = $pdo->query('SELECT id, criterion_name AS name, max_score FROM scoring_criteria ORDER BY criterion_name')->fetchAll();
-// Fix role mismatch: use 'reviewer' to match users/create.php
-$reviewers = $pdo->query("SELECT id, full_name FROM users WHERE role = 'reviewer' ORDER BY full_name")->fetchAll();
+// Fetch active programs
+$programs = $pdo->query("SELECT * FROM scholarship_programs ORDER BY id DESC")->fetchAll();
 
-if (isset($_POST['update'])) {
-    $applicationId = trim($_POST['application_id']);
-    $criteriaId = trim($_POST['criteria_id']);
-    $councilId = trim($_POST['council_id']);
-    $score = trim($_POST['score']);
-    $note = trim($_POST['note']);
+if (isset($_POST['submit'])) {
+    $program_id = $_POST['program_id'];
+    $rule_type = trim($_POST['rule_type']);
+    $operator = trim($_POST['operator']);
+    $value = trim($_POST['value']);
 
-    if ($applicationId === '' || $criteriaId === '' || $councilId === '' || $score === '') {
-        $error = 'All fields are required.';
+    if (empty($program_id) || empty($rule_type) || empty($operator) || empty($value)) {
+        $error = "Please fill in all required fields.";
     } else {
-        $maxStmt = $pdo->prepare('SELECT max_score FROM scoring_criteria WHERE id = ?');
-        $maxStmt->execute([$criteriaId]);
-        $criteriaData = $maxStmt->fetch();
+        $sql = "UPDATE eligibility_rules 
+                SET program_id = :program_id, rule_type = :rule_type, operator = :operator, value = :value 
+                WHERE id = :id";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':program_id' => $program_id,
+            ':rule_type' => $rule_type,
+            ':operator' => $operator,
+            ':value' => $value,
+            ':id' => $id
+        ]);
 
-        if (!$criteriaData) {
-            $error = 'Selected criteria does not exist.';
-        } elseif ((float)$score > (float)$criteriaData['max_score']) {
-            $error = 'Score exceeds maximum value (' . $criteriaData['max_score'] . ') for this criteria.';
-        } else {
-            $duplicateStmt = $pdo->prepare(
-                'SELECT id FROM evaluation_scores WHERE application_id = ? AND criteria_id = ? AND council_id = ? AND id <> ?'
-            );
-            $duplicateStmt->execute([$applicationId, $criteriaId, $councilId, $id]);
-
-            if ($duplicateStmt->rowCount() > 0) {
-                $error = 'Another score already exists for this reviewer, criteria, and application.';
-            } else {
-                $updateQuery = $pdo->prepare(
-                    'UPDATE evaluation_scores SET application_id = ?, criteria_id = ?, council_id = ?, score = ?, note = ? WHERE id = ?'
-                );
-                $updateQuery->execute([$applicationId, $criteriaId, $councilId, $score, $note, $id]);
-                processApplicationScores($pdo, (int)$applicationId);
-                header('Location: index.php');
-                exit;
-            }
-        }
+        header("Location: index.php");
+        exit;
     }
 }
 
@@ -86,8 +65,8 @@ require_once '../../includes/navbar.php';
 <div class="container py-4">
     <!-- PAGE HEADER -->
     <div class="mb-4">
-        <h1 class="page-title">Edit Evaluation Score</h1>
-        <p class="page-subtitle">Modify criteria evaluation score details</p>
+        <h1 class="page-title">Edit Eligibility Rule</h1>
+        <p class="page-subtitle">Modify candidate filtering standard for a scholarship program</p>
     </div>
 
     <!-- ALERTS -->
@@ -104,51 +83,47 @@ require_once '../../includes/navbar.php';
             <div class="form-card">
                 <form method="POST">
                     <div class="mb-3">
-                        <label class="form-label">Application <span class="text-danger">*</span></label>
-                        <select name="application_id" class="form-select" required>
-                            <?php foreach ($applications as $application): ?>
-                                <option value="<?= $application['id'] ?>" <?= $application['id'] == $scoreData['application_id'] ? 'selected' : '' ?>>
-                                    #<?= $application['id'] ?> - <?= htmlspecialchars($application['student_name']) ?> (<?= htmlspecialchars($application['program_name']) ?>)
+                        <label class="form-label">Scholarship Program <span class="text-danger">*</span></label>
+                        <select name="program_id" class="form-select" required>
+                            <option value="">-- Select Program --</option>
+                            <?php foreach ($programs as $program): ?>
+                                <option value="<?= e($program['id']) ?>" <?= $program['id'] == $rule['program_id'] ? 'selected' : '' ?>>
+                                    <?= e($program['name']) ?> (Slots: <?= e($program['slots']) ?>)
                                 </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Criteria <span class="text-danger">*</span></label>
-                        <select name="criteria_id" class="form-select" required>
-                            <?php foreach ($criteria as $item): ?>
-                                <option value="<?= $item['id'] ?>" <?= $item['id'] == $scoreData['criteria_id'] ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($item['name']) ?> (Max <?= $item['max_score'] ?>)
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                        <label class="form-label">Rule Type / Attribute <span class="text-danger">*</span></label>
+                        <input type="text" name="rule_type" class="form-control" value="<?= e($rule['rule_type']) ?>" placeholder="e.g. GPA, credits, faculty, major" required>
+                        <div class="form-text">Case-sensitive database attribute mapping (e.g. 'GPA').</div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Reviewer (Council Member) <span class="text-danger">*</span></label>
-                        <select name="council_id" class="form-select" required>
-                            <?php foreach ($reviewers as $reviewer): ?>
-                                <option value="<?= $reviewer['id'] ?>" <?= $reviewer['id'] == $scoreData['council_id'] ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($reviewer['full_name']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Comparison Operator <span class="text-danger">*</span></label>
+                            <select name="operator" class="form-select" required>
+                                <option value=">=" <?= $rule['operator'] === '>=' ? 'selected' : '' ?>>&gt;= (Greater or equal)</option>
+                                <option value="<=" <?= $rule['operator'] === '<=' ? 'selected' : '' ?>>&lt;= (Less or equal)</option>
+                                <option value="=" <?= $rule['operator'] === '=' ? 'selected' : '' ?>>= (Exactly equal)</option>
+                                <option value=">" <?= $rule['operator'] === '>' ? 'selected' : '' ?>>&gt; (Strictly greater)</option>
+                                <option value="<" <?= $rule['operator'] === '<' ? 'selected' : '' ?>>&lt; (Strictly less)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Threshold Value <span class="text-danger">*</span></label>
+                            <input type="text" name="value" class="form-control" value="<?= e($rule['value']) ?>" placeholder="e.g. 3.2, 120, IT" required>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Assigned Score <span class="text-danger">*</span></label>
-                        <input type="number" step="0.01" min="0" name="score" value="<?= htmlspecialchars($scoreData['score']) ?>" class="form-control" required>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label">Notes / Remarks</label>
-                        <textarea name="note" class="form-control" rows="3"><?= htmlspecialchars($scoreData['note']) ?></textarea>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <button type="submit" name="update" class="btn btn-primary">Update Score</button>
-                        <a href="index.php" class="btn btn-secondary">Cancel</a>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" name="submit" class="btn btn-primary">
+                            Update Rule
+                        </button>
+                        <a href="index.php" class="btn btn-secondary">
+                            Cancel
+                        </a>
                     </div>
                 </form>
             </div>

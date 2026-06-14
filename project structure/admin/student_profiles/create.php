@@ -29,14 +29,14 @@ if (isset($_POST['submit'])) {
     if ($userId <= 0 || $gpa === '') {
         $error = 'Student and GPA are required.';
     } else {
-        $check = $pdo->prepare('SELECT id FROM student_profiles WHERE user_id = ?');
+        $check = $pdo->prepare('SELECT id FROM student_profiles WHERE student_id = ?');
         $check->execute([$userId]);
 
         if ($check->rowCount() > 0) {
             $error = 'A profile already exists for this student.';
         } else {
             $insert = $pdo->prepare(
-                'INSERT INTO student_profiles (user_id, faculty, major, gpa, activities_count, family_income, is_disadvantaged, research_count, failed_subjects) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                'INSERT INTO student_profiles (student_id, faculty, major, gpa, activities_count, family_income, is_disadvantaged, research_count, failed_subjects) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
             $insert->execute([
                 $userId,

@@ -6,7 +6,10 @@
 if (!defined('BASE_URL')) {
     // URL to the project root as seen from the browser.
     // Use %20 for the space in "project structure" so HTTP redirects work.
-    define('BASE_URL', 'http://localhost/project%20structure');
+    define(
+        'BASE_URL',
+        'http://localhost/scholarship-management-system/project%20structure'
+    );
 }
 
 if (!defined('BASE_PATH')) {

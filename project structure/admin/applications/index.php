@@ -7,10 +7,33 @@ require_once '../../includes/auth.php';
 requireLogin();
 requireRole('admin');
 
+$pdo = getDB();
+
+// Handle Check Eligibility requests
+if (isset($_GET['check_id'])) {
+    $checkId = (int)$_GET['check_id'];
+    require_once '../../includes/eligibility.php';
+    checkEligibility($pdo, $checkId);
+    setFlash('success', "Automatic eligibility check completed for Application #$checkId.");
+    header("Location: index.php");
+    exit;
+}
+
+if (isset($_GET['check_all'])) {
+    require_once '../../includes/eligibility.php';
+    $stmtPending = $pdo->query("SELECT id FROM applications WHERE eligible IS NULL");
+    $count = 0;
+    while ($row = $stmtPending->fetch()) {
+        checkEligibility($pdo, (int)$row['id']);
+        $count++;
+    }
+    setFlash('success', "Batch eligibility check processed $count application(s).");
+    header("Location: index.php");
+    exit;
+}
+
 require_once '../../includes/header.php';
 require_once '../../includes/navbar.php';
-
-$pdo = getDB();
 
 $applications = $pdo->query("
     SELECT a.*, u.full_name, sp.name AS program_name
@@ -26,9 +49,14 @@ $applications = $pdo->query("
     <h1 class="page-title">Applications</h1>
     <p class="page-subtitle">Manage all scholarship applications in the system.</p>
   </div>
-  <a href="create.php" class="btn btn-primary">
-    <i class="bi bi-plus-lg"></i> Add Application
-  </a>
+  <div class="d-flex gap-2">
+    <a href="index.php?check_all=1" class="btn btn-outline-primary">
+      <i class="bi bi-play-circle me-1"></i> Run Eligibility Checks
+    </a>
+    <a href="create.php" class="btn btn-primary">
+      <i class="bi bi-plus-lg"></i> Add Application
+    </a>
+  </div>
 </div>
 
 <div class="table-card">
@@ -68,6 +96,9 @@ $applications = $pdo->query("
             <td class="text-muted"><?= e($app['submitted_at']) ?></td>
             <td>
               <div class="d-flex gap-2">
+                <a href="index.php?check_id=<?= $app['id'] ?>" class="btn btn-sm btn-info btn-action" title="Check Eligibility">
+                  <i class="bi bi-shield-check"></i> Check
+                </a>
                 <a href="edit.php?id=<?= $app['id'] ?>" class="btn btn-sm btn-warning btn-action">
                   <i class="bi bi-pencil"></i> Edit
                 </a>

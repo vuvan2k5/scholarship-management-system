@@ -96,6 +96,12 @@ if (!function_exists('navPageActive')) {
           </a>
         </li>
         <li class="nav-item">
+          <a href="<?= BASE_URL ?>/admin/eligibility_engine/index.php"
+             class="nav-link <?= navActive('/admin/eligibility_engine/') ?>">
+            <i class="bi bi-cpu"></i> Eligibility Engine
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="<?= BASE_URL ?>/admin/eligibility_results/index.php"
              class="nav-link <?= navActive('/admin/eligibility_results/') ?>">
             <i class="bi bi-clipboard-check"></i> Eligibility Results

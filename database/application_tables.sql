@@ -64,3 +64,8 @@ CREATE TABLE IF NOT EXISTS notifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+-- Add Foreign Key to eligibility_results referencing applications
+ALTER TABLE eligibility_results
+ADD CONSTRAINT fk_eligibility_results_applications
+FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE;

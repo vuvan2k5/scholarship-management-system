@@ -3,12 +3,10 @@ USE scholarship_system;
 CREATE TABLE ranking_results (
     id             INT(11) AUTO_INCREMENT PRIMARY KEY,
     application_id INT(11) NOT NULL,
-    program_id     INT(11) NOT NULL,
     total_score    DECIMAL(5,2) NOT NULL,
     `rank`         INT NOT NULL,
     recommended    TINYINT(1) DEFAULT 0,
-    FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
-    FOREIGN KEY (program_id)     REFERENCES scholarship_programs(id) ON DELETE CASCADE
+    FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
 );
 
 CREATE TABLE disbursements (
@@ -19,16 +17,6 @@ CREATE TABLE disbursements (
     disbursed_at   DATETIME NULL,
     note           TEXT,
     FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
-);
-
-CREATE TABLE award_certificates (
-    id               INT(11) AUTO_INCREMENT PRIMARY KEY,
-    application_id   INT(11) NOT NULL,
-    certificate_code VARCHAR(100) NOT NULL UNIQUE,
-    issued_at        DATETIME DEFAULT CURRENT_TIMESTAMP,
-    issued_by        INT(11),
-    FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE,
-    FOREIGN KEY (issued_by)      REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE reports (
@@ -50,14 +38,12 @@ ALTER TABLE ranking_results AUTO_INCREMENT = 1;
 
 INSERT INTO ranking_results (
     application_id,
-    program_id,
     total_score,
     `rank`,
     recommended
 )
 SELECT
     x.application_id,
-    x.program_id,
     x.total_score,
     x.rank_no,
     CASE 
@@ -111,7 +97,7 @@ SELECT
 FROM (
     SELECT
         rr.application_id,
-        rr.program_id,
+        a.program_id,
         rr.`rank`,
         sp.budget AS amount,
         sp.slots,
@@ -126,12 +112,14 @@ FROM (
             sp.slots
         ) AS note,
         ROW_NUMBER() OVER (
-            PARTITION BY rr.program_id
+            PARTITION BY a.program_id
             ORDER BY rr.`rank` ASC, rr.total_score DESC, rr.application_id ASC
         ) AS selected_order
     FROM ranking_results rr
+    JOIN applications a
+        ON rr.application_id = a.id
     JOIN scholarship_programs sp
-        ON rr.program_id = sp.id
+        ON a.program_id = sp.id
     WHERE rr.recommended = 1
 ) AS final
 WHERE final.selected_order <= final.slots;
@@ -276,7 +264,7 @@ SELECT
         '.pdf'
     ),
 
-    rr.program_id
+    a.program_id
 
 FROM ranking_results rr
 

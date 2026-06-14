@@ -13,25 +13,13 @@ require_once '../includes/navbar.php';
 $pdo = getDB();
 
 $totalApplications  = $pdo->query("SELECT COUNT(*) FROM applications")->fetchColumn();
-$totalStudents      = $pdo->query("SELECT COUNT(*) FROM student_profiles")->fetchColumn();
-$totalScores        = $pdo->query("SELECT COUNT(*) FROM evaluation_scores")->fetchColumn();
-$totalRankings = $pdo->query("
-    SELECT COUNT(*) 
-    FROM ranking_results
-")->fetchColumn();
-
-$totalDisbursements = $pdo->query("
-    SELECT COUNT(*) 
-    FROM disbursements
-")->fetchColumn();
-
-$totalReports = $pdo->query("
-    SELECT COUNT(*) 
-    FROM reports
-")->fetchColumn();
-$totalNotifications = $pdo->query("SELECT COUNT(*) FROM notifications")->fetchColumn();
 $pendingApps        = $pdo->query("SELECT COUNT(*) FROM applications WHERE status = 'submitted'")->fetchColumn();
-$approvedApps       = $pdo->query("SELECT COUNT(*) FROM applications WHERE status = 'approved'")->fetchColumn();
+
+// New Dashboard Stats requested by User
+$totalEligible = $pdo->query("SELECT COUNT(*) FROM applications WHERE eligible = 1")->fetchColumn();
+$totalRejected = $pdo->query("SELECT COUNT(*) FROM applications WHERE eligible = 0")->fetchColumn();
+$totalAwarded  = $pdo->query("SELECT COUNT(*) FROM ranking_results WHERE recommended = 1")->fetchColumn();
+$totalBudget   = $pdo->query("SELECT SUM(budget) FROM scholarship_programs")->fetchColumn();
 
 $recentApps = $pdo->query("
     SELECT a.*, u.full_name, sp.name AS program_name
@@ -57,43 +45,53 @@ $recentApps = $pdo->query("
 
 <!-- Stat Cards -->
 <div class="row g-3 mb-4">
-  <div class="col-sm-6 col-xl-3">
+  <div class="col-sm-6 col-xl">
     <div class="stat-card">
       <div class="stat-icon blue"><i class="bi bi-folder2-open"></i></div>
       <div class="stat-body">
-        <div class="stat-label">Total Applications</div>
+        <div class="stat-label">Applications</div>
         <div class="stat-value"><?= e($totalApplications) ?></div>
-        <div class="stat-trend"><?= e($pendingApps) ?> pending review</div>
+        <div class="stat-trend"><?= e($pendingApps) ?> pending</div>
       </div>
     </div>
   </div>
-  <div class="col-sm-6 col-xl-3">
+  <div class="col-sm-6 col-xl">
     <div class="stat-card">
-      <div class="stat-icon green"><i class="bi bi-mortarboard"></i></div>
+      <div class="stat-icon green"><i class="bi bi-check-circle"></i></div>
       <div class="stat-body">
-        <div class="stat-label">Student Profiles</div>
-        <div class="stat-value"><?= e($totalStudents) ?></div>
-        <div class="stat-trend"><?= e($approvedApps) ?> approved</div>
+        <div class="stat-label">Eligible</div>
+        <div class="stat-value"><?= e($totalEligible) ?></div>
+        <div class="stat-trend">Passed filter</div>
       </div>
     </div>
   </div>
-  <div class="col-sm-6 col-xl-3">
+  <div class="col-sm-6 col-xl">
     <div class="stat-card">
-      <div class="stat-icon yellow"><i class="bi bi-star-half"></i></div>
+      <div class="stat-icon red"><i class="bi bi-x-circle"></i></div>
       <div class="stat-body">
-        <div class="stat-label">Evaluation Scores</div>
-        <div class="stat-value"><?= e($totalScores) ?></div>
-        <div class="stat-trend">Across all applications</div>
+        <div class="stat-label">Rejected</div>
+        <div class="stat-value"><?= e($totalRejected) ?></div>
+        <div class="stat-trend">Failed filter</div>
       </div>
     </div>
   </div>
-  <div class="col-sm-6 col-xl-3">
+  <div class="col-sm-6 col-xl">
     <div class="stat-card">
-      <div class="stat-icon red"><i class="bi bi-bell"></i></div>
+      <div class="stat-icon yellow"><i class="bi bi-trophy"></i></div>
       <div class="stat-body">
-        <div class="stat-label">Notifications</div>
-        <div class="stat-value"><?= e($totalNotifications) ?></div>
-        <div class="stat-trend">System-wide</div>
+        <div class="stat-label">Awarded</div>
+        <div class="stat-value"><?= e($totalAwarded) ?></div>
+        <div class="stat-trend">Recommended</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl">
+    <div class="stat-card">
+      <div class="stat-icon text-success" style="background: rgba(25, 135, 84, 0.15);"><i class="bi bi-cash-stack"></i></div>
+      <div class="stat-body">
+        <div class="stat-label">Total Budget</div>
+        <div class="stat-value" style="font-size: 18px;"><?= number_format($totalBudget, 0, ',', '.') ?>đ</div>
+        <div class="stat-trend">Across programs</div>
       </div>
     </div>
   </div>

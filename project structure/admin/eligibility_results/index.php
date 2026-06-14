@@ -31,6 +31,9 @@ $results = $pdo->query($sql)->fetchAll();
     <h1 class="page-title">Eligibility Results</h1>
     <p class="page-subtitle">Historical logs of filter checking outcomes for candidates.</p>
   </div>
+  <a href="../applications/index.php?check_all=1" class="btn btn-primary">
+    <i class="bi bi-play-circle me-1"></i> Run Eligibility Checks
+  </a>
 </div>
 
 <div class="table-card">

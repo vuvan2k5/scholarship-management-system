@@ -37,14 +37,25 @@ $status = $app['status'];
 $eligible = $app['eligible'];
 
 if (isset($_POST['update'])) {
-    $status = $_POST['status'];
-    $eligible = $_POST['eligible'] !== '' ? intval($_POST['eligible']) : null;
+    $oldStatus = $app['status']; // capture before overwrite
+    $status    = $_POST['status'];
+    $eligible  = $_POST['eligible'] !== '' ? intval($_POST['eligible']) : null;
 
     $update = $pdo->prepare(
         'UPDATE applications SET status = ?, eligible = ? WHERE id = ?'
     );
     $update->execute([$status, $eligible, $id]);
 
+    // ── Auto-Notifications on status change ──────────────────
+    require_once '../../includes/notifications.php';
+    if ($oldStatus !== 'approved' && $status === 'approved') {
+        notifyApplicationApproved($pdo, $id);
+    }
+    if ($oldStatus !== 'rejected' && $status === 'rejected') {
+        notifyApplicationRejected($pdo, $id);
+    }
+
+    setFlash('success', 'Application #' . $id . ' updated successfully.');
     header('Location: index.php');
     exit;
 }

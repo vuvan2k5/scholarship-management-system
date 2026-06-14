@@ -57,7 +57,7 @@ $sql = "
         ON applications.program_id = scholarship_programs.id
 
     LEFT JOIN student_profiles
-        ON student_profiles.user_id = users.id
+        ON student_profiles.student_id = users.id
 
     WHERE applications.id = ?
 

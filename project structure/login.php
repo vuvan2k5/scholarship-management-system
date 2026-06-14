@@ -1,5 +1,3 @@
-// require_once 'includes/auth.php';
-// require_once 'includes/header.php';
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -21,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
-        if ($user && $password === $user['password_hash']) {
+        if ($user && password_verify($password, $user['password_hash'])) {
             // Normalize legacy 'council' role to 'reviewer'
             $userRole = ($user['role'] === 'council') ? 'reviewer' : $user['role'];
 

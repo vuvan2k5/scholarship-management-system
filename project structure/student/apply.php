@@ -108,6 +108,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             ]);
 
+            $newAppId = $pdo->lastInsertId();
+            require_once __DIR__ . '/../includes/eligibility.php';
+            checkEligibility($pdo, (int)$newAppId);
+
             /* CREATE NOTIFICATION */
 
             $notify = $pdo->prepare("

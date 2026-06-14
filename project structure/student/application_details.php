@@ -37,7 +37,7 @@ $sql = "
         p.major AS student_major
     FROM applications a
     JOIN scholarship_programs sp ON a.program_id = sp.id
-    LEFT JOIN student_profiles p ON a.student_id = p.user_id
+    LEFT JOIN student_profiles p ON a.student_id = p.student_id
     WHERE a.id = ? AND a.student_id = ?
     LIMIT 1
 ";

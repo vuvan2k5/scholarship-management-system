@@ -35,13 +35,13 @@ if (isset($_POST['update'])) {
     if ($userId === '' || $gpa === '') {
         $error = 'User and GPA are required.';
     } else {
-        $check = $pdo->prepare('SELECT id FROM student_profiles WHERE user_id = ? AND id <> ?');
+        $check = $pdo->prepare('SELECT id FROM student_profiles WHERE student_id = ? AND id <> ?');
         $check->execute([$userId, $id]);
         if ($check->rowCount() > 0) {
             $error = 'Another profile already exists for this user.';
         } else {
             $update = $pdo->prepare(
-                "UPDATE student_profiles SET user_id = ?, faculty = ?, major = ?, gpa = ?, activities_count = ?, family_income = ?, is_disadvantaged = ?, research_count = ?, failed_subjects = ? WHERE id = ?"
+                "UPDATE student_profiles SET student_id = ?, faculty = ?, major = ?, gpa = ?, activities_count = ?, family_income = ?, is_disadvantaged = ?, research_count = ?, failed_subjects = ? WHERE id = ?"
             );
             $update->execute([
                 $userId, $faculty, $major, $gpa,
@@ -93,7 +93,7 @@ endif;
                         <label class="form-label">Student <span class="text-danger">*</span></label>
                         <select name="user_id" class="form-select" required>
                             <?php foreach ($users as $user): ?>
-                                <option value="<?= $user['id'] ?>" <?= $user['id'] == $profile['user_id'] ? 'selected' : '' ?>>
+                                <option value="<?= $user['id'] ?>" <?= $user['id'] == $profile['student_id'] ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($user['full_name']) ?>
                                 </option>
                             <?php endforeach; ?>

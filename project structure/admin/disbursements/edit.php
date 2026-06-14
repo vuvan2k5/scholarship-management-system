@@ -36,6 +36,7 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $application_id = trim($_POST['application_id']);
     $amount         = trim($_POST['amount']);
+    $oldStatus      = $row['status']; // capture before overwrite
     $status         = trim($_POST['status']);
     $disbursed_at   = trim($_POST['disbursed_at']);
     $note           = trim($_POST['note']);
@@ -60,6 +61,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $note !== '' ? $note : null,
             $id,
         ]);
+
+        // ── Auto-Notification: Scholarship Paid ────────────────
+        require_once '../../includes/notifications.php';
+        if ($oldStatus !== 'paid' && $status === 'paid') {
+            notifyScholarshipPaid($pdo, $id);
+        }
+
+        setFlash('success', 'Disbursement updated. Notification sent if status changed to Paid.');
         header('Location: index.php');
         exit;
     }

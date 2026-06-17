@@ -301,12 +301,7 @@ if ($bodyRoleClass) {
         </button>
         <span class="topbar-title"><?= isset($pageTitle) ? e($pageTitle) : 'Scholarship System' ?></span>
       </div>
-<<<<<<< HEAD
       <div class="topbar-right" style="display:flex;align-items:center;gap:10px;">
-=======
-
-      <div class="topbar-right">
->>>>>>> origin/mai-reviewer-role
         <span class="badge badge-<?= e($role) ?>" style="font-size:11px;padding:5px 10px;">
           <?= strtoupper(e($role)) ?>
         </span>

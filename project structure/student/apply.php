@@ -221,7 +221,6 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/navbar.php';
 ?>
 
-<<<<<<< Updated upstream
 <div class="container py-4">
 
     <!-- PAGE HEADER -->
@@ -358,7 +357,6 @@ require_once __DIR__ . '/../includes/navbar.php';
 
     </div>
 
-=======
 <!-- Page Header -->
 <div class="page-header">
   <div class="page-header-left">
@@ -380,7 +378,6 @@ require_once __DIR__ . '/../includes/navbar.php';
       <i class="bi bi-grid-3x3-gap"></i> All Scholarships
     </a>
   </div>
->>>>>>> Stashed changes
 </div>
 
 <?php showFlash(); ?>

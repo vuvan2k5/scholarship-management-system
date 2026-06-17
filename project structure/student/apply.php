@@ -235,21 +235,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </option>
 
                                 <?php foreach ($programs as $program): ?>
-
-                                    <option
-                                        value="<?= $program['id'] ?>"
-                                        <?= isset($_POST['program_id'])
-                                            && intval($_POST['program_id'])
-                                            === intval($program['id'])
-                                                ? 'selected'
-                                                : ''
-                                        ?>
-                                    >
-
+                                    <?php
+                                        $isSelected = false;
+                                        if (isset($_POST['program_id']) && intval($_POST['program_id']) === intval($program['id'])) {
+                                            $isSelected = true;
+                                        } elseif (isset($_GET['program_id']) && intval($_GET['program_id']) === intval($program['id'])) {
+                                            $isSelected = true;
+                                        }
+                                    ?>
+                                    <option value="<?= $program['id'] ?>" <?= $isSelected ? 'selected' : '' ?>>
                                         <?= e($program['name']) ?>
-
                                     </option>
-
                                 <?php endforeach; ?>
 
                             </select>

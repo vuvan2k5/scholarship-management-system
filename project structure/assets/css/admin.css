@@ -1,144 +1,230 @@
 /* ============================================================
-   admin.css  –  Admin-specific overrides & helpers
+   admin.css  –  Admin-specific overrides & helpers  v2
    All base styles live in style.css
    ============================================================ */
 
 /* ── Sidebar nav-header (legacy alias) ─────────────────────── */
 .nav-header {
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 700;
-    letter-spacing: .1em;
+    letter-spacing: .12em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, .3);
-    padding: 16px 8px 6px;
+    color: rgba(255,255,255,.25);
+    padding: 18px 10px 7px;
     margin-top: 4px;
     list-style: none;
 }
 
 /* ── Status badge helpers (used in PHP badge logic) ─────────── */
-.badge-status-submitted {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.badge-status-reviewing {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.badge-status-eligible {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.badge-status-ineligible {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.badge-status-approved {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.badge-status-rejected {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.badge-status-pending {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.badge-status-paid {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.badge-status-failed {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.badge-status-active {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.badge-status-inactive {
-    background: #f1f5f9;
-    color: #475569;
-}
+.badge-status-submitted  { background: #dbeafe; color: #1d4ed8; }
+.badge-status-reviewing  { background: #fef3c7; color: #92400e; }
+.badge-status-eligible   { background: #d1fae5; color: #065f46; }
+.badge-status-ineligible { background: #fee2e2; color: #991b1b; }
+.badge-status-approved   { background: #d1fae5; color: #065f46; }
+.badge-status-rejected   { background: #fee2e2; color: #991b1b; }
+.badge-status-pending    { background: #fef3c7; color: #92400e; }
+.badge-status-paid       { background: #d1fae5; color: #065f46; }
+.badge-status-failed     { background: #fee2e2; color: #991b1b; }
+.badge-status-active     { background: #d1fae5; color: #065f46; }
+.badge-status-inactive   { background: #f1f5f9; color: #475569; }
 
 /* ── Action button min-width ─────────────────────────────────── */
-.btn-action {
-    min-width: 72px;
-}
+.btn-action { min-width: 72px; }
 
 /* ── System status indicator dots ───────────────────────────── */
 .status-dot {
     display: inline-block;
-    width: 8px;
-    height: 8px;
+    width: 8px; height: 8px;
     border-radius: 50%;
     margin-right: 6px;
+    vertical-align: middle;
 }
-
 .status-dot.online {
     background: #16a34a;
-    box-shadow: 0 0 0 3px rgba(22, 163, 74, .2);
+    box-shadow: 0 0 0 3px rgba(22,163,74,.18);
+    animation: statusPulse 2s infinite;
 }
+.status-dot.offline { background: #dc2626; }
 
-.status-dot.offline {
-    background: #dc2626;
+@keyframes statusPulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(22,163,74,.18); }
+    50%       { box-shadow: 0 0 0 5px rgba(22,163,74,.08); }
 }
 
 /* ── Quick action grid ───────────────────────────────────────── */
 .quick-action-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
 }
 
 .quick-action-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 18px 12px;
+    gap: 9px;
+    padding: 20px 12px;
     background: var(--gray-50);
     border: 1.5px solid var(--gray-200);
     border-radius: var(--radius-md);
     text-decoration: none;
     color: var(--gray-700);
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 600;
     transition: var(--transition);
     text-align: center;
+    letter-spacing: -.01em;
 }
-
 .quick-action-item i {
     font-size: 22px;
     color: var(--primary);
+    transition: var(--transition);
 }
-
 .quick-action-item:hover {
     background: var(--primary-light);
     border-color: var(--primary-muted);
     color: var(--primary);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-md);
 }
+.quick-action-item:hover i { transform: scale(1.15); }
 
-/* ── View detail table (eligibility_results/view.php) ────────── */
+/* ── View detail table ────────────────────────────────────────── */
 .detail-table th {
     width: 200px;
     color: var(--gray-600);
     font-weight: 600;
     background: var(--gray-50);
+    white-space: nowrap;
+    font-size: 13px;
+}
+.detail-table td { color: var(--gray-800); font-size: 13.5px; }
+
+/* ── Topbar logout button ────────────────────────────────────── */
+.btn-topbar-logout {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(220,38,38,.08);
+    color: #ef4444;
+    border: 1.5px solid rgba(220,38,38,.2);
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 6px 13px;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: var(--transition);
+    cursor: pointer;
+}
+.btn-topbar-logout:hover {
+    background: rgba(220,38,38,.15);
+    border-color: rgba(220,38,38,.35);
+    color: #dc2626;
+    transform: translateY(-1px);
 }
 
-.detail-table td {
-    color: var(--gray-800);
+/* ── Topbar role badge ───────────────────────────────────────── */
+.topbar .badge {
+    font-size: 10.5px;
+    padding: 5px 11px;
+    letter-spacing: .06em;
+}
+
+/* ── Admin page containers ───────────────────────────────────── */
+.container.py-4 { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
+
+/* ── Section divider label (used inside cards) ───────────────── */
+.section-divider {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--gray-400);
+    padding: 0 0 10px;
+    border-bottom: 1px solid var(--gray-100);
+    margin-bottom: 20px;
+}
+
+/* ── Scrollable table on mobile ─────────────────────────────── */
+.table-responsive { -webkit-overflow-scrolling: touch; }
+
+/* ── Form card inside centered col ──────────────────────────── */
+.col-lg-8 .form-card,
+.col-lg-8 .form-section {
+    border-radius: var(--radius-xl);
+    padding: 36px 40px;
+}
+@media (max-width: 767.98px) {
+    .col-lg-8 .form-card,
+    .col-lg-8 .form-section { padding: 24px 20px; }
+}
+
+/* ── Improved inline confirm dialogs ─────────────────────────── */
+.btn[onclick*="confirm"] { position: relative; }
+
+/* ── Table row action buttons spacing ───────────────────────── */
+td .d-flex.gap-2 { flex-wrap: wrap; }
+
+/* ── Dashboard stat grid ─────────────────────────────────────── */
+.row.g-3 .stat-card { min-height: 92px; }
+
+/* ── Sidebar footer sign-out button ─────────────────────────── */
+.sidebar-footer > a.btn {
+    background: rgba(255,255,255,.06) !important;
+    color: rgba(255,255,255,.65) !important;
+    border: 1.5px solid rgba(255,255,255,.1) !important;
+    border-radius: var(--radius-sm) !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    transition: var(--transition) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 14px;
+}
+.sidebar-footer > a.btn:hover {
+    background: rgba(220,38,38,.15) !important;
+    color: #fca5a5 !important;
+    border-color: rgba(220,38,38,.3) !important;
+}
+
+/* ── Programs CRUD JS modal tweaks ───────────────────────────── */
+.modal-content {
+    border: none;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+}
+.modal-header {
+    border-bottom: 1px solid var(--gray-100);
+    padding: 20px 24px;
+    background: var(--gray-50);
+}
+.modal-footer {
+    border-top: 1px solid var(--gray-100);
+    padding: 16px 24px;
+    background: #fff;
+}
+.modal-title { font-size: 16px; font-weight: 700; letter-spacing: -.01em; color: var(--gray-900); }
+.modal-body  { padding: 24px; }
+
+/* ── Pagination (if added later) ─────────────────────────────── */
+.pagination .page-link {
+    color: var(--primary);
+    border-color: var(--gray-200);
+    border-radius: var(--radius-xs);
+    font-size: 13px;
+    font-weight: 500;
+    transition: var(--transition);
+}
+.pagination .page-item.active .page-link {
+    background: var(--primary);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-blue);
+}
+.pagination .page-link:hover {
+    background: var(--primary-light);
+    border-color: var(--primary-muted);
+    color: var(--primary);
 }

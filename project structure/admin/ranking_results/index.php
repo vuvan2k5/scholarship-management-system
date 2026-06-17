@@ -1,3 +1,4 @@
+<?php
 $pageTitle = 'Ranking Results';
 
 require_once '../../config/db.php';

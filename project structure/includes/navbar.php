@@ -188,6 +188,12 @@ if (!function_exists('navPageActive')) {
             <i class="bi bi-speedometer2"></i> Dashboard
           </a>
         </li>
+         <li class="nav-item">
+          <a href="<?= BASE_URL ?>/programs.php"
+             class="nav-link <?= navPageActive('programs.php') ?>">
+            <i class="bi bi-award"></i> Scholarship Programs
+          </a>
+        </li>
         <li class="nav-item">
           <a href="<?= BASE_URL ?>/student/apply.php"
              class="nav-link <?= navPageActive('apply.php') ?>">
@@ -248,10 +254,19 @@ if (!function_exists('navPageActive')) {
         </button>
         <span class="topbar-title"><?= isset($pageTitle) ? e($pageTitle) : 'Scholarship System' ?></span>
       </div>
-      <div class="topbar-right">
+      <div class="topbar-right" style="display:flex;align-items:center;gap:10px;">
         <span class="badge badge-<?= e($role) ?>" style="font-size:11px;padding:5px 10px;">
           <?= strtoupper(e($role)) ?>
         </span>
+        <a href="<?= BASE_URL ?>/logout.php"
+           class="btn btn-sm"
+           style="background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);display:flex;align-items:center;gap:5px;font-size:13px;padding:5px 12px;border-radius:8px;text-decoration:none;transition:all .2s;"
+           onmouseover="this.style.background='rgba(239,68,68,.22)'"
+           onmouseout="this.style.background='rgba(239,68,68,.12)'"
+           title="Đăng xuất">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="d-none d-sm-inline">Logout</span>
+        </a>
       </div>
     </header>
 

@@ -21,6 +21,16 @@ if (!function_exists('navPageActive')) {
     }
 }
 ?>
+<?php
+// Add role-specific class to <body> for scoped CSS theming
+$bodyRoleClass = '';
+if ($role === 'student')  $bodyRoleClass = 'role-student';
+elseif ($role === 'admin') $bodyRoleClass = 'role-admin';
+elseif ($role === 'reviewer') $bodyRoleClass = 'role-reviewer';
+if ($bodyRoleClass) {
+    echo '<script>document.body.classList.add(' . json_encode($bodyRoleClass) . ');</script>';
+}
+?>
 
 <div class="app-shell">
 
@@ -208,9 +218,15 @@ if (!function_exists('navPageActive')) {
         </li>
 
         <li class="nav-item">
+          <a href="<?= BASE_URL ?>/student/scholarships.php"
+             class="nav-link <?= navPageActive('scholarships.php') ?>">
+            <i class="bi bi-award"></i> Scholarships
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="<?= BASE_URL ?>/student/apply.php"
              class="nav-link <?= navPageActive('apply.php') ?>">
-            <i class="bi bi-file-earmark-plus"></i> Apply Scholarship
+            <i class="bi bi-file-earmark-plus"></i> Apply
           </a>
         </li>
 
@@ -232,6 +248,24 @@ if (!function_exists('navPageActive')) {
           <a href="<?= BASE_URL ?>/student/notifications.php"
              class="nav-link <?= navPageActive('notifications.php') ?>">
             <i class="bi bi-bell"></i> Notifications
+            <?php
+              // Unread count badge
+              if (function_exists('currentUserId') && currentUserId()) {
+                try {
+                  $pdo2 = getDB();
+                  $uc = $pdo2->prepare("SELECT COUNT(*) FROM notifications WHERE user_id=? AND is_read=0");
+                  $uc->execute([currentUserId()]);
+                  $unc = (int)$uc->fetchColumn();
+                  if ($unc > 0) echo "<span style='margin-left:auto;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;'>$unc</span>";
+                } catch(Exception $e) {}
+              }
+            ?>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="<?= BASE_URL ?>/student/profile.php"
+             class="nav-link <?= navPageActive('profile.php') ?>">
+            <i class="bi bi-person-gear"></i> My Profile
           </a>
         </li>
 

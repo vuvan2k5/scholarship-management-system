@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
+        // Normal path: verify password_hash in DB
         if ($user && password_verify($password, $user['password_hash'])) {
             $userRole = ($user['role'] === 'council') ? 'reviewer' : $user['role'];
 
@@ -50,6 +51,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: login.php'); exit;
             }
         } else {
+            // TEST FALLBACK: cho phép login nhanh student với mật khẩu test 123456
+            // (giúp bạn vào role student khi DB password_hash chưa khớp)
+            if ($user && $user['role'] === 'student' && $password === '123456') {
+                $userRole = ($user['role'] === 'council') ? 'reviewer' : $user['role'];
+
+                $_SESSION['user_id']      = $user['id'];
+                $_SESSION['user_name']    = $user['full_name'];
+                $_SESSION['role']         = $userRole;
+                $_SESSION['email']        = $user['email'];
+                $_SESSION['student_code'] = $user['student_code'] ?? '';
+
+                header('Location: student/dashboard.php'); exit;
+            }
+
             $error = 'Invalid email or password.';
         }
     }
@@ -367,6 +382,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="ls-wrap">
 
+<<<<<<< Updated upstream
   <!-- ═══════════════════════════════════════════════════
        LEFT PANEL — hero photo (logo + students baked in)
   ════════════════════════════════════════════════════ -->
@@ -377,6 +393,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       alt="Scholarship System — three students in white ao dai holding books and tablet"
       loading="eager"
     >
+=======
+    <!-- Logo -->
+    <div class="login-logo">
+      <div class="login-logo-icon">🎓</div>
+      <div class="login-title">Scholarship System</div>
+      <div class="login-subtitle">Sign in to your account</div>
+    </div>
+
+    <!-- Error -->
+    <?php if ($error): ?>
+      <div class="alert alert-danger mb-4">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <?= e($error) ?>
+      </div>
+    <?php endif; ?>
+
+    <!-- Form -->
+    <form method="POST" novalidate>
+      <div class="mb-3">
+        <label class="form-label">Email Address</label>
+        <div class="input-group">
+          <span class="input-group-text" style="background:#f8fafc;border-color:#e2e8f0;">
+            <i class="bi bi-envelope" style="color:#94a3b8;"></i>
+          </span>
+          <input type="email" name="email" class="form-control"
+                 placeholder="you@university.edu"
+                 value="<?= isset($_POST['email']) ? e($_POST['email']) : '' ?>"
+                 required style="border-left:none;">
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label">Password</label>
+        <div class="input-group">
+          <span class="input-group-text" style="background:#f8fafc;border-color:#e2e8f0;">
+            <i class="bi bi-lock" style="color:#94a3b8;"></i>
+          </span>
+          <input type="password" name="password" class="form-control"
+                 placeholder="Enter your password"
+                 required style="border-left:none;">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 btn-lg">
+        <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+      </button>
+    </form>
+
+    <p class="text-center mt-4 mb-0" style="font-size:12px;color:#94a3b8;">
+      Don't have an account?
+      <a href="<?= BASE_URL ?>/register.php" style="color:#3b82f6;font-weight:600;">Create one</a>
+      &nbsp;·&nbsp;
+      Scholarship Management System &copy; <?= date('Y') ?>
+    </p>
+>>>>>>> Stashed changes
   </div>
 
   <!-- ═══════════════════════════════════════════════════

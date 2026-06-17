@@ -72,6 +72,13 @@ $stmt->execute([$id]);
 $app = $stmt->fetch();
 
 /* =========================
+   FETCH EVIDENCE FILES
+========================= */
+$evidStmt = $pdo->prepare("SELECT * FROM application_evidence WHERE application_id = ? ORDER BY uploaded_at ASC");
+$evidStmt->execute([$id]);
+$evidenceFiles = $evidStmt->fetchAll();
+
+/* =========================
    APPLICATION NOT FOUND
 ========================= */
 
@@ -284,6 +291,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </div>
 
+        </div>
+
+        <!-- EVIDENCE FILES -->
+        <div class="col-lg-12">
+            <div class="card mb-4" style="border-top:3px solid #2563eb;">
+                <div class="card-body">
+                    <h4 class="mb-4"><i class="bi bi-paperclip me-2 text-primary"></i> Evidence Documents Submitted</h4>
+                    <?php if (empty($evidenceFiles)): ?>
+                        <div class="alert alert-secondary">
+                            <i class="bi bi-info-circle me-2"></i>This student did not upload any evidence files.
+                        </div>
+                    <?php else: ?>
+                        <div class="row g-3">
+                        <?php foreach ($evidenceFiles as $ev):
+                            $isImage  = strpos($ev['file_type'], 'image/') === 0;
+                            $isPdf    = $ev['file_type'] === 'application/pdf';
+                            $icon     = $isImage ? '🖼️' : ($isPdf ? '📄' : '📝');
+                            // Encode each path segment to handle spaces (e.g. "project structure")
+                            $rawPath  = str_replace('\\', '/', $ev['file_path']);
+                            $segments = explode('/', trim($rawPath, '/'));
+                            $fileUrl  = '/' . implode('/', array_map('rawurlencode', $segments));
+                            $statusBg = ['pending'=>'warning','approved'=>'success','rejected'=>'danger'][$ev['status']] ?? 'secondary';
+                        ?>
+                            <div class="col-md-6">
+                                <div style="border:1px solid #e2e8f0;border-radius:10px;padding:14px;background:#fafafa;height:100%;">
+                                    <div style="display:flex;gap:12px;align-items:flex-start;">
+                                        <span style="font-size:32px;line-height:1;flex-shrink:0;"><?= $icon ?></span>
+                                        <div style="flex:1;min-width:0;">
+                                            <div style="font-size:13px;font-weight:700;color:#0f172a;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                                <?= e($ev['original_name']) ?>
+                                            </div>
+                                            <div style="font-size:11.5px;color:#64748b;margin-bottom:10px;">
+                                                <?= number_format($ev['file_size']/1024, 1) ?> KB &middot; <?= e($ev['file_type']) ?>
+                                            </div>
+                                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                                <span class="badge bg-<?= $statusBg ?> text-capitalize"><?= e($ev['status']) ?></span>
+                                                <?php if ($isImage): ?>
+                                                    <a href="<?= e($fileUrl) ?>" target="_blank" class="btn btn-sm btn-primary" style="font-size:11px;">
+                                                        <i class="bi bi-eye me-1"></i>View Image
+                                                    </a>
+                                                <?php else: ?>
+                                                    <a href="<?= e($fileUrl) ?>" target="_blank" class="btn btn-sm btn-outline-primary" style="font-size:11px;">
+                                                        <i class="bi bi-box-arrow-up-right me-1"></i>Open File
+                                                    </a>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
 
         <!-- REVIEW FORM -->

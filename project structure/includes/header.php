@@ -26,5 +26,10 @@
 
   <!-- Admin helpers -->
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/admin.css">
+
+  <!-- Student role theme (blue + white) -->
+  <?php if (function_exists('currentRole') && currentRole() === 'student'): ?>
+  <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/student.css">
+  <?php endif; ?>
 </head>
 <body>

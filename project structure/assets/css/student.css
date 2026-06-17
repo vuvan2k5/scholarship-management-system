@@ -1,0 +1,382 @@
+/* ============================================================
+   student.css  –  Student Role Theme
+   Blue (#1D4ED8) + White design language
+   Scoped to body.role-student  –  overrides style.css
+   ============================================================ */
+
+/* ── CSS overrides scoped to student role ─────────────────── */
+body.role-student {
+    --student-blue:        #1D4ED8;
+    --student-blue-dark:   #1a44c2;
+    --student-blue-deeper: #1638a8;
+    --student-blue-light:  #EFF6FF;
+    --student-blue-muted:  #BFDBFE;
+    --student-blue-glow:   0 4px 16px rgba(29, 78, 216, .30);
+
+    background: #f0f4ff;   /* subtle blue-tinted page background */
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+
+/* Main sidebar background: rich blue gradient */
+body.role-student .sidebar {
+    background: linear-gradient(180deg, #1D4ED8 0%, #1638a8 60%, #0f2870 100%);
+    box-shadow: 4px 0 24px rgba(29, 78, 216, .25);
+}
+
+/* Scrollbar thumb */
+body.role-student .sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, .20);
+}
+
+/* Brand area */
+body.role-student .sidebar-brand {
+    border-bottom: 1px solid rgba(255, 255, 255, .15);
+}
+
+body.role-student .sidebar-brand-icon {
+    background: rgba(255, 255, 255, .18);
+    border: 1px solid rgba(255, 255, 255, .25);
+    font-size: 20px;
+}
+
+body.role-student .sidebar-brand-text {
+    color: #fff;
+    font-size: 15.5px;
+    font-weight: 800;
+    letter-spacing: .01em;
+}
+
+body.role-student .sidebar-brand-sub {
+    color: rgba(255, 255, 255, .55);
+}
+
+/* Section labels */
+body.role-student .nav-section-label {
+    color: rgba(255, 255, 255, .45);
+    font-size: 9.5px;
+    letter-spacing: .12em;
+}
+
+/* Nav links */
+body.role-student .sidebar-nav .nav-link {
+    color: rgba(255, 255, 255, .78);
+    font-size: 13.5px;
+    border-radius: 10px;
+}
+
+body.role-student .sidebar-nav .nav-link i {
+    color: rgba(255, 255, 255, .70);
+    opacity: 1;
+}
+
+body.role-student .sidebar-nav .nav-link:hover {
+    background: rgba(255, 255, 255, .14);
+    color: #fff;
+    transform: translateX(3px);
+}
+
+body.role-student .sidebar-nav .nav-link:hover i {
+    color: #fff;
+}
+
+/* Active nav link: white pill with blue text */
+body.role-student .sidebar-nav .nav-link.active {
+    background: #fff;
+    color: var(--student-blue);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .18);
+    font-weight: 700;
+}
+
+body.role-student .sidebar-nav .nav-link.active i {
+    color: var(--student-blue);
+    opacity: 1;
+}
+
+/* Sidebar footer */
+body.role-student .sidebar-footer {
+    border-top: 1px solid rgba(255, 255, 255, .15);
+}
+
+body.role-student .sidebar-avatar {
+    background: rgba(255, 255, 255, .20);
+    border: 1.5px solid rgba(255, 255, 255, .30);
+    color: #fff;
+}
+
+body.role-student .sidebar-user-name {
+    color: #fff;
+    font-weight: 700;
+}
+
+body.role-student .sidebar-user-role {
+    color: rgba(255, 255, 255, .55);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    font-size: 10px;
+}
+
+/* Sign out button */
+body.role-student .sidebar-footer .btn {
+    background: rgba(255, 255, 255, .12);
+    color: rgba(255, 255, 255, .85);
+    border: 1px solid rgba(255, 255, 255, .20);
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all .18s;
+}
+
+body.role-student .sidebar-footer .btn:hover {
+    background: rgba(255, 255, 255, .22);
+    color: #fff;
+}
+
+/* Notification badge in nav */
+body.role-student .sidebar-nav span[style*="background:#ef4444"] {
+    background: #ff6b6b !important;
+    box-shadow: 0 2px 6px rgba(255, 107, 107, .45);
+}
+
+/* ── TOPBAR ──────────────────────────────────────────────── */
+body.role-student .topbar {
+    background: #fff;
+    border-bottom: 2px solid var(--student-blue-muted);
+    box-shadow: 0 2px 12px rgba(29, 78, 216, .08);
+}
+
+body.role-student .topbar-title {
+    color: var(--student-blue);
+    font-weight: 700;
+    font-size: 15.5px;
+}
+
+/* Role badge in topbar */
+body.role-student .topbar .badge-student {
+    background: var(--student-blue);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: .06em;
+    box-shadow: 0 2px 8px rgba(29, 78, 216, .30);
+}
+
+/* ── PAGE BODY BACKGROUND ────────────────────────────────── */
+body.role-student .main-content {
+    background: #f0f4ff;
+}
+
+body.role-student .page-body {
+    background: #f0f4ff;
+}
+
+/* ── PAGE HEADER ─────────────────────────────────────────── */
+body.role-student .page-title {
+    color: #0f172a;
+}
+
+body.role-student .page-subtitle {
+    color: #4b6ea8;
+}
+
+/* ── STAT CARDS ──────────────────────────────────────────── */
+body.role-student .stat-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(29, 78, 216, .08);
+    background: #fff;
+}
+
+body.role-student .stat-card:hover {
+    box-shadow: 0 6px 24px rgba(29, 78, 216, .16);
+    transform: translateY(-4px);
+}
+
+body.role-student .stat-icon.blue {
+    background: var(--student-blue-light);
+    color: var(--student-blue);
+}
+
+body.role-student .stat-value {
+    color: #0f172a;
+}
+
+/* ── CARDS ───────────────────────────────────────────────── */
+body.role-student .card {
+    border: 1px solid #dbeafe;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(29, 78, 216, .07);
+    background: #fff;
+}
+
+body.role-student .card:hover {
+    box-shadow: 0 6px 24px rgba(29, 78, 216, .13);
+}
+
+body.role-student .card-title {
+    color: #1e3a70;
+}
+
+/* ── TABLE CARDS ─────────────────────────────────────────── */
+body.role-student .table-card {
+    border: 1px solid #dbeafe;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(29, 78, 216, .07);
+}
+
+body.role-student .table-card-header {
+    border-bottom: 1px solid #eff6ff;
+    background: #f7f9ff;
+    border-radius: 16px 16px 0 0;
+}
+
+body.role-student .table-card-title {
+    color: #1e3a70;
+    font-weight: 700;
+}
+
+body.role-student .table thead tr {
+    background: #eff6ff;
+}
+
+body.role-student .table thead th {
+    color: #3b5fa0;
+    border-bottom: 1px solid #dbeafe;
+}
+
+body.role-student .table tbody tr:hover {
+    background: #f5f8ff;
+}
+
+/* ── BUTTONS ─────────────────────────────────────────────── */
+body.role-student .btn-primary {
+    background: var(--student-blue);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(29, 78, 216, .25);
+}
+
+body.role-student .btn-primary:hover {
+    background: var(--student-blue-dark);
+    color: #fff;
+    box-shadow: var(--student-blue-glow);
+    transform: translateY(-2px);
+}
+
+body.role-student .btn-outline-primary {
+    color: var(--student-blue);
+    border-color: var(--student-blue);
+}
+
+body.role-student .btn-outline-primary:hover {
+    background: var(--student-blue);
+    color: #fff;
+}
+
+body.role-student .btn-secondary {
+    background: #f0f4ff;
+    color: #3b5fa0;
+    border: 1.5px solid #c7d9f8;
+}
+
+body.role-student .btn-secondary:hover {
+    background: #dbeafe;
+    color: var(--student-blue);
+}
+
+/* ── FORM CONTROLS ───────────────────────────────────────── */
+body.role-student .form-control:focus,
+body.role-student .form-select:focus {
+    border-color: var(--student-blue);
+    box-shadow: 0 0 0 3px rgba(29, 78, 216, .13);
+}
+
+/* ── ALERTS ──────────────────────────────────────────────── */
+body.role-student .alert-info {
+    background: #eff6ff;
+    color: #1e3a70;
+    border-left: 4px solid var(--student-blue);
+}
+
+/* ── QUICK ACTIONS ───────────────────────────────────────── */
+body.role-student .quick-action-item {
+    background: #f7f9ff;
+    border: 1.5px solid #dbeafe;
+    color: #3b5fa0;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all .18s;
+}
+
+body.role-student .quick-action-item i {
+    color: var(--student-blue);
+}
+
+body.role-student .quick-action-item:hover {
+    background: var(--student-blue);
+    border-color: var(--student-blue);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(29, 78, 216, .25);
+    transform: translateY(-2px);
+}
+
+body.role-student .quick-action-item:hover i {
+    color: #fff;
+}
+
+/* ── PROFILE AVATAR ──────────────────────────────────────── */
+body.role-student .card .text-center div[style*="border-radius:50%"] {
+    background: var(--student-blue-light) !important;
+    color: var(--student-blue) !important;
+    border: 3px solid var(--student-blue-muted);
+    box-shadow: 0 4px 16px rgba(29, 78, 216, .15);
+}
+
+/* ── STEP NUMBER CIRCLES (apply.php) ─────────────────────── */
+body.role-student span[style*="background:#eff6ff"][style*="color:#2563eb"] {
+    background: var(--student-blue) !important;
+    color: #fff !important;
+    box-shadow: 0 2px 8px rgba(29, 78, 216, .30);
+}
+
+/* ── GPA HIGHLIGHT BOX (apply.php) ──────────────────────── */
+body.role-student div[style*="background:#eff6ff"][style*="border-radius:10px"] {
+    background: var(--student-blue-light) !important;
+    border: 1px solid var(--student-blue-muted) !important;
+}
+
+/* ── SCORE PREVIEW BOX (profile.php) ────────────────────── */
+body.role-student #scorePreview {
+    background: var(--student-blue-light) !important;
+    border: 1.5px solid var(--student-blue-muted);
+}
+
+/* ── DRAG & DROP ZONE (apply.php) ────────────────────────── */
+body.role-student #dropZone:hover,
+body.role-student #dropZone[style*="borderColor:#2563eb"] {
+    border-color: var(--student-blue) !important;
+    background: var(--student-blue-light) !important;
+}
+
+/* ── BADGE – student role tag ────────────────────────────── */
+body.role-student .badge-student {
+    background: var(--student-blue);
+    color: #fff;
+}
+
+/* ── TEXT COLOUR OVERRIDES ───────────────────────────────── */
+body.role-student .text-primary {
+    color: var(--student-blue) !important;
+}
+
+body.role-student a {
+    color: var(--student-blue);
+}
+
+body.role-student a:hover {
+    color: var(--student-blue-dark);
+}
+
+/* ── MOBILE SIDEBAR BACKDROP ─────────────────────────────── */
+@media (max-width: 991.98px) {
+    body.role-student .sidebar {
+        box-shadow: 4px 0 32px rgba(29, 78, 216, .35);
+    }
+}

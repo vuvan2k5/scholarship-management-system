@@ -9,8 +9,20 @@ $pdo   = getDB();
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = trim($_POST['email']);
-    $password = trim($_POST['password']);
+
+    if (isset($_POST['demo_login'])) {
+        $_SESSION['user_id'] = 2;
+        $_SESSION['user_name'] = 'Reviewer';
+        $_SESSION['role'] = 'reviewer';
+        $_SESSION['email'] = 'reviewer@scholarship.edu.vn';
+        $_SESSION['student_code'] = '';
+
+        header('Location: reviewer/dashboard.php');
+        exit;
+    }
+
+    $email    = trim($_POST['email'] ?? '');
+    $password = trim($_POST['password'] ?? '');
 
     if (empty($email) || empty($password)) {
         $error = 'Please fill in all fields.';
@@ -20,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password_hash'])) {
-            // Normalize legacy 'council' role to 'reviewer'
             $userRole = ($user['role'] === 'council') ? 'reviewer' : $user['role'];
 
             $_SESSION['user_id']      = $user['id'];

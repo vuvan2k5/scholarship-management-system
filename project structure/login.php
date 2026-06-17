@@ -382,7 +382,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <div class="ls-wrap">
 
-<<<<<<< Updated upstream
   <!-- ═══════════════════════════════════════════════════
        LEFT PANEL — hero photo (logo + students baked in)
   ════════════════════════════════════════════════════ -->
@@ -393,7 +392,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       alt="Scholarship System — three students in white ao dai holding books and tablet"
       loading="eager"
     >
-=======
     <!-- Logo -->
     <div class="login-logo">
       <div class="login-logo-icon">🎓</div>
@@ -447,7 +445,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       &nbsp;·&nbsp;
       Scholarship Management System &copy; <?= date('Y') ?>
     </p>
->>>>>>> Stashed changes
   </div>
 
   <!-- ═══════════════════════════════════════════════════

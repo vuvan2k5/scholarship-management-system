@@ -153,32 +153,12 @@ INSERT INTO scholarship_programs
 VALUES
 
 (
-'International Talent Scholarship',
-'Scholarship for internationally competitive students.',
-20000000,
-3,
-'2026-03-01',
-'2026-09-01',
-'open'
-),
-
-(
-'Research Innovation Scholarship',
-'Support scholarship for students participating in scientific research.',
-15000000,
-5,
-'2026-01-10',
-'2026-07-15',
-'open'
-),
-
-(
-'Academic Excellence Scholarship',
-'Scholarship for students with outstanding academic performance.',
-12000000,
-5,
-'2026-01-01',
-'2026-06-30',
+'Financial Support Scholarship',
+'Scholarship for students facing financial difficulties with good academic records.',
+10000000,
+8,
+'2026-02-15',
+'2026-08-15',
 'open'
 ),
 
@@ -193,12 +173,32 @@ VALUES
 ),
 
 (
-'Financial Support Scholarship',
-'Scholarship for students with financial difficulties.',
-2000000,
-10,
-'2026-01-15',
-'2026-07-30',
+'Academic Excellence Scholarship',
+'Scholarship for students with outstanding academic performance.',
+12000000,
+5,
+'2026-01-01',
+'2026-06-30',
+'open'
+),
+
+(
+'Research Innovation Scholarship',
+'Support scholarship for students participating in scientific research.',
+15000000,
+5,
+'2026-01-10',
+'2026-07-15',
+'open'
+),
+
+(
+'International Talent Scholarship',
+'Scholarship for internationally competitive students.',
+20000000,
+3,
+'2026-03-01',
+'2026-09-01',
 'open'
 );
 
@@ -207,23 +207,28 @@ VALUES
 -- =====================================
 
 INSERT INTO eligibility_rules (program_id, rule_type, operator, value) VALUES
-(1, 'gpa', '>=', '3.5'),
-(1, 'activities', '>=', '5'),
+-- Program 1: Financial Support Scholarship
+(1, 'family_income', '<=', '15000000'),
 (1, 'failed_subjects', '=', '0'),
+(1, 'gpa', '>=', '2.5'),
 
-(2, 'gpa', '>=', '3.2'),
-(2, 'research_projects', '>=', '1'),
+-- Program 2: Community Leadership Scholarship
+(2, 'activities_count', '>=', '5'),
 (2, 'failed_subjects', '=', '0'),
 
-(3, 'activities', '>=', '10'),
-(3, 'discipline', '=', 'good'),
+-- Program 3: Academic Excellence Scholarship
+(3, 'gpa', '>=', '3.2'),
+(3, 'failed_subjects', '=', '0'),
 
-(4, 'financial_status', '=', 'difficult'),
-(4, 'gpa', '>=', '2.8'),
+-- Program 4: Research Innovation Scholarship
+(4, 'research_count', '>=', '1'),
+(4, 'gpa', '>=', '3.0'),
+(4, 'failed_subjects', '=', '0'),
 
-(5, 'english_score', '>=', '850'),
-(5, 'gpa', '>=', '3.7'),
-(5, 'research_projects', '>=', '2');
+-- Program 5: International Talent Scholarship
+(5, 'gpa', '>=', '3.5'),
+(5, 'language_certificate', '=', '1'),
+(5, 'failed_subjects', '=', '0');
 
 -- =====================================
 -- SCORING CRITERIA
@@ -232,24 +237,30 @@ INSERT INTO eligibility_rules (program_id, rule_type, operator, value) VALUES
 INSERT INTO scoring_criteria
 (program_id, criterion_name, weight, max_score)
 VALUES
-(1, 'GPA', 40.00, 100),
-(1, 'Research', 25.00, 100),
+-- Program 1: Financial Support Scholarship (IDs: 1, 2, 3)
+(1, 'GPA', 30.00, 100),
+(1, 'Family Income', 50.00, 100),
 (1, 'Activities', 20.00, 100),
-(1, 'Financial Condition', 15.00, 100),
 
-(2, 'Research Output', 50.00, 100),
-(2, 'GPA', 30.00, 100),
-(2, 'Presentation', 20.00, 100),
+-- Program 2: Community Leadership Scholarship (IDs: 4, 5, 6)
+(2, 'Leadership Experience', 40.00, 100),
+(2, 'Community Contributions', 40.00, 100),
+(2, 'GPA', 20.00, 100),
 
-(3, 'Community Activities', 50.00, 100),
-(3, 'Leadership', 30.00, 100),
-(3, 'Discipline', 20.00, 100),
+-- Program 3: Academic Excellence Scholarship (IDs: 7, 8, 9)
+(3, 'GPA', 60.00, 100),
+(3, 'Extracurricular Activities', 20.00, 100),
+(3, 'Language Proficiency', 20.00, 100),
 
-(4, 'Financial Difficulty', 50.00, 100),
-(4, 'Academic Performance', 30.00, 100),
-(4, 'Activities', 20.00, 100),
+-- Program 4: Research Innovation Scholarship (IDs: 10, 11, 12)
+(4, 'Research Projects', 50.00, 100),
+(4, 'GPA', 30.00, 100),
+(4, 'Presentation', 20.00, 100),
 
-(5, 'International Awards', 40.00, 100),
-(5, 'Research', 30.00, 100),
-(5, 'English Proficiency', 30.00, 100);
+-- Program 5: International Talent Scholarship (IDs: 13, 14, 15, 16)
+(5, 'GPA', 40.00, 100),
+(5, 'Language Certificate', 20.00, 100),
+(5, 'Extracurricular Activities', 20.00, 100),
+(5, 'Research Projects', 20.00, 100);
+
 

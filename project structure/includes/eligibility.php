@@ -70,17 +70,10 @@ function checkEligibility(PDO $pdo, int $applicationId): bool {
                 $actualValue = (int)$profile['research_count'];
                 $threshold = (int)$threshold;
                 $fieldName = 'Research Projects';
-            } elseif ($type === 'financial_status' || $type === 'family_income' || $type === 'is_disadvantaged') {
-                if ($threshold === 'difficult') {
-                    // Check if disadvantaged
-                    $actualValue = (int)$profile['is_disadvantaged'];
-                    $threshold = 1;
-                    $fieldName = 'Disadvantaged Status';
-                } else {
-                    $actualValue = (float)$profile['family_income'];
-                    $threshold = (float)$threshold;
-                    $fieldName = 'Family Income';
-                }
+            } elseif ($type === 'language_certificate' || $type === 'language_cert') {
+                $actualValue = (int)($profile['language_certificate'] ?? 0);
+                $threshold = (int)$threshold;
+                $fieldName = 'Language Certificate';
             } else {
                 // If it maps to any other column in student_profiles dynamically
                 if (array_key_exists($type, $profile)) {

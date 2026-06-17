@@ -1,4 +1,4 @@
---Bảng này lưu trữ thông tin chi tiết về học vấn và hoàn cảnh xã hội của mỗi sinh viên.
+-- Bảng này lưu trữ thông tin chi tiết về học vấn và hoàn cảnh xã hội của mỗi sinh viên.
 -- Populating 50 student profiles based on the users created previously
 INSERT INTO student_profiles (student_id, faculty, major, gpa, activities_count, family_income, is_disadvantaged)
 SELECT 
@@ -12,7 +12,7 @@ SELECT
 FROM users 
 WHERE role = 'student' LIMIT 50;
 
---Thông tin này ghi lại sinh viên nào đang nộp đơn xin học bổng chương trình nào.
+-- Thông tin này ghi lại sinh viên nào đang nộp đơn xin học bổng chương trình nào.
 -- Creating 30 sample applications
 INSERT INTO applications (student_id, program_id, status, submitted_at)
 SELECT 
@@ -30,25 +30,24 @@ WHERE id = 1;
 UPDATE applications
 SET program_id = 2
 WHERE id = 2;
---Đây là chức năng cốt lõi của hệ thống . Nó lưu trữ điểm số thô do Hội đồng/Người đánh giá chấm cho từng tiêu chí cụ thể.
--- Example: Scoring for Application ID 1 (Academic Excellence Scholarship)
+-- Đây là chức năng cốt lõi của hệ thống . Nó lưu trữ điểm số thô do Hội đồng/Người đánh giá chấm cho từng tiêu chí cụ thể.
+-- Example: Scoring for Application ID 1 (Financial Support Scholarship)
 -- Assuming Reviewer IDs are 52 and 53 based on your previous insert
 INSERT INTO evaluation_scores (application_id, criteria_id, council_id, score) VALUES
 (1, 1, 52, 95), -- Reviewer One scores GPA criterion
-(1, 2, 52, 80), -- Reviewer One scores Research criterion
-(1, 3, 53, 85), -- Reviewer Two scores Activities criterion
-(1, 4, 53, 70); -- Reviewer Two scores Financial Condition criterion
+(1, 2, 52, 80), -- Reviewer One scores Family Income criterion
+(1, 3, 53, 85); -- Reviewer Two scores Activities criterion
 
--- Example: Scoring for Application ID 2 (Research Innovation)
+-- Example: Scoring for Application ID 2 (Community Leadership)
 INSERT INTO evaluation_scores (application_id, criteria_id, council_id, score) VALUES
-(2, 5, 52, 88),
-(2, 6, 52, 92),
-(2, 7, 53, 75);
---Bảng này giúp sinh viên cập nhật tiến độ xét duyệt hồ sơ của mình.
+(2, 4, 52, 88), -- Reviewer One scores Leadership Experience
+(2, 5, 52, 92), -- Reviewer One scores Community Contributions
+(2, 6, 53, 75); -- Reviewer Two scores GPA
+-- Bảng này giúp sinh viên cập nhật tiến độ xét duyệt hồ sơ của mình.
 -- System generated notifications
 INSERT INTO notifications (user_id, title, message, type, is_read)
 VALUES 
-(1, 'Application Received', 'Your application for the Academic Excellence Scholarship has been successfully submitted.', 'info', 0),
+(1, 'Application Received', 'Your application for the Financial Support Scholarship has been successfully submitted.', 'info', 0),
 (2, 'Eligibility Passed', 'Congratulations! You have passed the initial eligibility check.', 'success', 0),
 (3, 'Eligibility Failed', 'We regret to inform you that your GPA does not meet the minimum requirements.', 'error', 0);
 

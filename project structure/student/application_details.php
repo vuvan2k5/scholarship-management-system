@@ -83,6 +83,14 @@ $certSql = "SELECT * FROM award_certificates WHERE application_id = ? LIMIT 1";
 $certStmt = $pdo->prepare($certSql);
 $certStmt->execute([$appId]);
 $certificate = $certStmt->fetch(PDO::FETCH_ASSOC);
+
+/* ============================================================
+   FETCH EVIDENCE FILES
+   ============================================================ */
+$evidSql = "SELECT * FROM application_evidence WHERE application_id = ? ORDER BY uploaded_at ASC";
+$evidStmt = $pdo->prepare($evidSql);
+$evidStmt->execute([$appId]);
+$evidenceFiles = $evidStmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <div class="container py-4">
@@ -231,9 +239,71 @@ $certificate = $certStmt->fetch(PDO::FETCH_ASSOC);
                     <?php endif; ?>
                 </div>
             </div>
+
+            <!-- EVIDENCE FILES CARD -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-4"><i class="bi bi-paperclip me-2 text-primary"></i> Evidence Documents</h5>
+                    <?php if (empty($evidenceFiles)): ?>
+                        <div class="alert alert-secondary mb-0" style="font-size:13px;">
+                            <i class="bi bi-info-circle me-2"></i>No evidence files were uploaded with this application.
+                        </div>
+                    <?php else: ?>
+                        <div style="display:flex;flex-direction:column;gap:10px;">
+                        <?php foreach ($evidenceFiles as $ev):
+                            $isImage = strpos($ev['file_type'], 'image/') === 0;
+                            $isPdf   = $ev['file_type'] === 'application/pdf';
+                            $icon    = $isImage ? '🖼️' : ($isPdf ? '📄' : '📝');
+                            $statusColors = ['pending'=>['#fef9c3','#854d0e','#ca8a04'], 'approved'=>['#f0fdf4','#14532d','#16a34a'], 'rejected'=>['#fef2f2','#7f1d1d','#dc2626']];
+                            $sc = $statusColors[$ev['status']] ?? $statusColors['pending'];
+                            // Encode each path segment to handle spaces (e.g. "project structure")
+                            $rawPath = str_replace('\\', '/', $ev['file_path']);
+                            $segments = explode('/', trim($rawPath, '/'));
+                            $fileUrl = '/' . implode('/', array_map('rawurlencode', $segments));
+                        ?>
+                            <div style="border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;background:#fafafa;">
+                                <div style="display:flex;align-items:flex-start;gap:12px;">
+                                    <span style="font-size:28px;line-height:1;flex-shrink:0;"><?= $icon ?></span>
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="font-size:13px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;">
+                                            <?= e($ev['original_name']) ?>
+                                        </div>
+                                        <div style="font-size:11.5px;color:#64748b;margin-bottom:8px;">
+                                            <?= number_format($ev['file_size'] / 1024, 1) ?> KB &nbsp;&middot;&nbsp;
+                                            <?= e($ev['file_type']) ?> &nbsp;&middot;&nbsp;
+                                            Uploaded <?= date('M d, Y H:i', strtotime($ev['uploaded_at'])) ?>
+                                        </div>
+                                        <?php if ($ev['reviewer_comment']): ?>
+                                        <div style="font-size:12px;color:#475569;background:#f1f5f9;border-left:3px solid #2563eb;padding:6px 10px;border-radius:4px;margin-bottom:8px;">
+                                            <strong>Reviewer note:</strong> <?= e($ev['reviewer_comment']) ?>
+                                        </div>
+                                        <?php endif; ?>
+                                        <div style="display:flex;align-items:center;gap:8px;">
+                                            <span style="font-size:11px;font-weight:700;background:<?= $sc[0] ?>;color:<?= $sc[1] ?>;border:1px solid <?= $sc[2] ?>;padding:2px 8px;border-radius:20px;text-transform:capitalize;">
+                                                <?= e($ev['status']) ?>
+                                            </span>
+                                            <?php if ($isImage): ?>
+                                                <a href="<?= e($fileUrl) ?>" target="_blank" class="btn btn-sm btn-outline-primary" style="font-size:11px;padding:2px 10px;">
+                                                    <i class="bi bi-eye me-1"></i>View Image
+                                                </a>
+                                            <?php else: ?>
+                                                <a href="<?= e($fileUrl) ?>" target="_blank" class="btn btn-sm btn-outline-secondary" style="font-size:11px;padding:2px 10px;">
+                                                    <i class="bi bi-download me-1"></i>Download
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
 
         <!-- RIGHT COLUMN: FINANCIALS & CERTIFICATES -->
+
         <div class="col-lg-4">
             <!-- FINANCE DETAILS -->
             <div class="card mb-4">

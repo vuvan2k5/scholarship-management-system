@@ -9,8 +9,20 @@ $pdo   = getDB();
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = trim($_POST['email']);
-    $password = trim($_POST['password']);
+
+    if (isset($_POST['demo_login'])) {
+        $_SESSION['user_id'] = 2;
+        $_SESSION['user_name'] = 'Reviewer';
+        $_SESSION['role'] = 'reviewer';
+        $_SESSION['email'] = 'reviewer@scholarship.edu.vn';
+        $_SESSION['student_code'] = '';
+
+        header('Location: reviewer/dashboard.php');
+        exit;
+    }
+
+    $email    = trim($_POST['email'] ?? '');
+    $password = trim($_POST['password'] ?? '');
 
     if (empty($email) || empty($password)) {
         $error = 'Please fill in all fields.';
@@ -20,7 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password_hash'])) {
-            // Normalize legacy 'council' role to 'reviewer'
             $userRole = ($user['role'] === 'council') ? 'reviewer' : $user['role'];
 
             $_SESSION['user_id']      = $user['id'];
@@ -59,14 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="login-page">
   <div class="login-card">
 
-    <!-- Logo -->
     <div class="login-logo">
       <div class="login-logo-icon">🎓</div>
       <div class="login-title">Scholarship System</div>
       <div class="login-subtitle">Sign in to your account</div>
     </div>
 
-    <!-- Error -->
     <?php if ($error): ?>
       <div class="alert alert-danger mb-4">
         <i class="bi bi-exclamation-circle-fill"></i>
@@ -74,7 +83,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
     <?php endif; ?>
 
-    <!-- Form -->
     <form method="POST" novalidate>
       <div class="mb-3">
         <label class="form-label">Email Address</label>
@@ -85,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <input type="email" name="email" class="form-control"
                  placeholder="you@university.edu"
                  value="<?= isset($_POST['email']) ? e($_POST['email']) : '' ?>"
-                 required style="border-left:none;">
+                 style="border-left:none;">
         </div>
       </div>
 
@@ -97,12 +105,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </span>
           <input type="password" name="password" class="form-control"
                  placeholder="Enter your password"
-                 required style="border-left:none;">
+                 style="border-left:none;">
         </div>
       </div>
 
       <button type="submit" class="btn btn-primary w-100 btn-lg">
         <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+      </button>
+
+      <button type="submit" name="demo_login" class="btn btn-outline-secondary w-100 btn-lg mt-2">
+        <i class="bi bi-lightning-charge me-2"></i> Demo Login Reviewer
       </button>
     </form>
 

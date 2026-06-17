@@ -8,7 +8,7 @@ if (!defined('BASE_URL')) {
     // Use %20 for the space in "project structure" so HTTP redirects work.
     define(
         'BASE_URL',
-        'http://localhost/scholarship-management-system/project%20structure'
+        'http://localhost:8080/scholarship-management-system/project%20structure'
     );
 }
 

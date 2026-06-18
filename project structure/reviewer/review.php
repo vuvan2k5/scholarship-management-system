@@ -308,10 +308,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $isImage  = strpos($ev['file_type'], 'image/') === 0;
                             $isPdf    = $ev['file_type'] === 'application/pdf';
                             $icon     = $isImage ? '🖼️' : ($isPdf ? '📄' : '📝');
-                            // Encode each path segment to handle spaces (e.g. "project structure")
-                            $rawPath  = str_replace('\\', '/', $ev['file_path']);
-                            $segments = explode('/', trim($rawPath, '/'));
-                            $fileUrl  = '/' . implode('/', array_map('rawurlencode', $segments));
+                            // Tạo URL đúng cho cả file_path cũ và mới.
+                            $rawPath = str_replace('\\', '/', $ev['file_path']);
+                            $rawPath = ltrim($rawPath, '/');
+                            $marker = 'uploads/evidence/';
+                            $pos = strpos($rawPath, $marker);
+                            if ($pos !== false) {
+                                $rawPath = substr($rawPath, $pos);
+                            }
+                            $segments = array_filter(explode('/', trim($rawPath, '/')), 'strlen');
+                            $fileUrl = rtrim(BASE_URL, '/') . '/' . implode('/', array_map('rawurlencode', $segments));
                             $statusBg = ['pending'=>'warning','approved'=>'success','rejected'=>'danger'][$ev['status']] ?? 'secondary';
                         ?>
                             <div class="col-md-6">

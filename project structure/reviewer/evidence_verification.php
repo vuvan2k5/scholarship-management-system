@@ -22,13 +22,25 @@ function evidenceFileUrl($path) {
         return $path;
     }
 
+    $path = str_replace('\\', '/', $path);
     $path = ltrim($path, '/');
 
-    if (defined('BASE_URL')) {
-        return rtrim(BASE_URL, '/') . '/' . $path;
+    // Nếu DB lỡ lưu đường dẫn kiểu tuyệt đối hoặc có kèm tên project,
+    // chỉ lấy phần từ uploads/evidence/... để reviewer mở đúng URL.
+    $marker = 'uploads/evidence/';
+    $pos = strpos($path, $marker);
+    if ($pos !== false) {
+        $path = substr($path, $pos);
     }
 
-    return '../' . $path;
+    $segments = array_filter(explode('/', $path), 'strlen');
+    $encodedPath = implode('/', array_map('rawurlencode', $segments));
+
+    if (defined('BASE_URL')) {
+        return rtrim(BASE_URL, '/') . '/' . $encodedPath;
+    }
+
+    return '../' . $encodedPath;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -36,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $status = $_POST['status'] ?? '';
     $comment = trim($_POST['comment'] ?? '');
 
-    if ($evidenceId > 0 && in_array($status, ['accepted', 'rejected'], true)) {
+    if ($evidenceId > 0 && in_array($status, ['approved', 'rejected'], true)) {
         try {
             $stmt = $pdo->prepare("
                 UPDATE application_evidence
@@ -69,7 +81,7 @@ $filter = $_GET['filter'] ?? 'all';
 $where = "";
 $params = [];
 
-if (in_array($filter, ['pending', 'accepted', 'rejected'], true)) {
+if (in_array($filter, ['pending', 'approved', 'rejected'], true)) {
     $where = "WHERE ev.status = ?";
     $params[] = $filter;
 }
@@ -680,7 +692,7 @@ body {
                 <select id="statusFilter" class="ev-control">
                     <option value="">All Status</option>
                     <option value="pending">Pending</option>
-                    <option value="accepted">Accepted</option>
+                    <option value="approved">Accepted</option>
                     <option value="rejected">Rejected</option>
                 </select>
 
@@ -818,7 +830,7 @@ body {
                                     <div class="ev-actions-row">
                                         <button 
                                             name="status" 
-                                            value="accepted" 
+                                            value="approved" 
                                             class="ev-btn ev-btn-success"
                                         >
                                             <i class="bi bi-check2-circle"></i>

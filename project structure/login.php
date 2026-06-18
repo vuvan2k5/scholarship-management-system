@@ -51,19 +51,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: login.php'); exit;
             }
         } else {
-            // TEST FALLBACK: cho phép login nhanh student với mật khẩu test 123456
-            // (giúp bạn vào role student khi DB password_hash chưa khớp)
-            if ($user && $user['role'] === 'student' && $password === '123456') {
-                $userRole = ($user['role'] === 'council') ? 'reviewer' : $user['role'];
+            // TEST FALLBACK: chỉ cho phép reviewer/council login bằng mật khẩu test 123456
+if ($user && in_array($user['role'], ['reviewer', 'council']) && $password === '123456') {
+    $userRole = 'reviewer';
 
-                $_SESSION['user_id']      = $user['id'];
-                $_SESSION['user_name']    = $user['full_name'];
-                $_SESSION['role']         = $userRole;
-                $_SESSION['email']        = $user['email'];
-                $_SESSION['student_code'] = $user['student_code'] ?? '';
+    $_SESSION['user_id']      = $user['id'];
+    $_SESSION['user_name']    = $user['full_name'];
+    $_SESSION['role']         = $userRole;
+    $_SESSION['email']        = $user['email'];
+    $_SESSION['student_code'] = '';
 
-                header('Location: student/dashboard.php'); exit;
-            }
+    header('Location: reviewer/dashboard.php');
+    exit;
+}
 
             $error = 'Invalid email or password.';
         }

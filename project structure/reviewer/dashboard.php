@@ -11,13 +11,8 @@ require_once '../includes/auth.php';
 requireLogin();
 requireRole('reviewer');
 
-require_once '../includes/header.php';
-require_once '../includes/navbar.php';
-require_once '_reviewer_common.php';
-
-reviewerCss();
-
 $pdo = getDB();
+$reviewerId = function_exists('currentUserId') ? currentUserId() : (int)($_SESSION['user_id'] ?? 0);
 
 function tableExists($pdo, $table) {
     try {
@@ -28,6 +23,26 @@ function tableExists($pdo, $table) {
         return false;
     }
 }
+
+if (isset($_GET['mark_notifications_read'])) {
+    try {
+        $stmt = $pdo->prepare("
+            UPDATE notifications
+            SET is_read = 1
+            WHERE user_id = ?
+        ");
+        $stmt->execute([$reviewerId]);
+    } catch (Exception $e) {}
+
+    header('Location: dashboard.php');
+    exit;
+}
+
+require_once '../includes/header.php';
+require_once '../includes/navbar.php';
+require_once '_reviewer_common.php';
+
+reviewerCss();
 
 function safeCount($pdo, $sql) {
     try {
@@ -120,46 +135,17 @@ $notifications = [];
 
 if (tableExists($pdo, 'notifications')) {
     try {
-        $notifications = $pdo->query("
+        $stmt = $pdo->prepare("
             SELECT id, title, message, type, created_at, is_read
             FROM notifications
+            WHERE user_id = ?
             ORDER BY created_at DESC
             LIMIT 8
-        ")->fetchAll();
+        ");
+        $stmt->execute([$reviewerId]);
+        $notifications = $stmt->fetchAll();
     } catch (Exception $e) {
         $notifications = [];
-    }
-}
-
-if (!$notifications) {
-    if ($pendingEvidence > 0) {
-        $notifications[] = [
-            'title' => 'Evidence needs verification',
-            'message' => $pendingEvidence . ' evidence document(s) are waiting for verification.',
-            'type' => 'Evidence',
-            'created_at' => date('Y-m-d H:i:s'),
-            'is_read' => 0
-        ];
-    }
-
-    if ($activeReviews > 0) {
-        $notifications[] = [
-            'title' => 'Applications need review',
-            'message' => $activeReviews . ' application(s) are currently in the review queue.',
-            'type' => 'Review',
-            'created_at' => date('Y-m-d H:i:s'),
-            'is_read' => 0
-        ];
-    }
-
-    if ($notScoredApplications > 0) {
-        $notifications[] = [
-            'title' => 'Scoring required',
-            'message' => $notScoredApplications . ' application(s) have not been scored yet.',
-            'type' => 'Score',
-            'created_at' => date('Y-m-d H:i:s'),
-            'is_read' => 0
-        ];
     }
 }
 
@@ -169,7 +155,6 @@ foreach ($notifications as $n) {
         $unreadNotifications++;
     }
 }
-
 
 function notificationLink($notification) {
     $type = strtolower((string)($notification['type'] ?? ''));
@@ -215,7 +200,6 @@ $logoutLink = '../logout.php';
     --rv-shadow: 0 12px 28px rgba(15, 23, 42, .07);
 }
 
-/* FIX: không cho layout tràn ngang khỏi màn hình */
 html,
 body {
     width: 100%;
@@ -262,7 +246,6 @@ body,
     box-shadow: var(--rv-shadow);
 }
 
-/* TOP BAR gọn hơn, không đẩy sang phải */
 .rv-topbar {
     padding: 16px 18px;
     display: flex;
@@ -400,8 +383,8 @@ body,
     position: fixed;
     top: 90px;
     right: 20px;
-    width: 360px;
-    max-height: 430px;
+    width: 380px;
+    max-height: 460px;
     overflow-y: auto;
     background: #fff;
     border: 1px solid var(--rv-line);
@@ -409,7 +392,6 @@ body,
     box-shadow: 0 24px 70px rgba(15,23,42,.2);
     z-index: 999999;
 }
-
 
 .rv-notify-panel.show {
     display: block;
@@ -424,7 +406,8 @@ body,
 .rv-notify-head {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
+    align-items: center;
+    gap: 8px;
 }
 
 .rv-notify-item.unread {
@@ -451,7 +434,6 @@ body,
     letter-spacing: .6px;
 }
 
-/* Metrics luôn nằm trong màn hình */
 .rv-metric {
     padding: 18px;
     height: 100%;
@@ -496,7 +478,6 @@ body,
     font-size: 13px;
 }
 
-/* giảm gutter Bootstrap để không bị cộng quá rộng */
 .row {
     --bs-gutter-x: 1rem;
 }
@@ -531,7 +512,6 @@ body,
     outline: none;
 }
 
-/* Review Queue: đủ thông tin nhưng gọn, không tràn ngang */
 .rv-table-box {
     width: 100%;
     max-width: 100%;
@@ -565,11 +545,21 @@ body,
     border-bottom: 1px solid #eef2f7;
 }
 
-.rv-queue-row:last-child { border-bottom: 0; }
-.rv-queue-row:hover { background: #fbfdff; }
+.rv-queue-row:last-child {
+    border-bottom: 0;
+}
 
-.rv-cell { min-width: 0; }
-.rv-cell-label { display: none; }
+.rv-queue-row:hover {
+    background: #fbfdff;
+}
+
+.rv-cell {
+    min-width: 0;
+}
+
+.rv-cell-label {
+    display: none;
+}
 
 .rv-student-meta {
     display: flex;
@@ -610,58 +600,6 @@ body,
     justify-content: center;
     white-space: nowrap;
     font-size: 12px;
-}
-
-@media (max-width: 1280px) {
-    .rv-queue-head,
-    .rv-queue-row {
-        grid-template-columns: minmax(180px, 1.25fr) minmax(150px, 1fr) minmax(170px, .9fr) 96px;
-        gap: 12px;
-    }
-
-    .rv-hide-md { display: none; }
-
-    .rv-status-stack {
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: center;
-    }
-}
-
-@media (max-width: 1100px) {
-    .rv-queue-head { display: none; }
-
-    .rv-table-box {
-        border: 0;
-        background: transparent;
-        display: grid;
-        gap: 12px;
-    }
-
-    .rv-queue-row {
-        grid-template-columns: 1fr;
-        align-items: start;
-        gap: 12px;
-        padding: 16px;
-        border: 1px solid var(--rv-line);
-        border-radius: 18px;
-        background: #fff;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, .05);
-    }
-
-    .rv-cell-label {
-        display: block;
-        color: var(--rv-muted);
-        font-size: 10px;
-        font-weight: 950;
-        text-transform: uppercase;
-        letter-spacing: .5px;
-        margin-bottom: 5px;
-    }
-
-    .rv-hide-md { display: block; }
-    .rv-status-stack { flex-direction: row; flex-wrap: wrap; }
-    .rv-action-btn { width: auto; min-width: 150px; }
 }
 
 .rv-student {
@@ -711,9 +649,20 @@ body,
     white-space: nowrap;
 }
 
-.rv-high { background: #fef2f2; color: #b91c1c; }
-.rv-medium { background: #fffbeb; color: #92400e; }
-.rv-normal { background: #f0fdf4; color: #166534; }
+.rv-high {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.rv-medium {
+    background: #fffbeb;
+    color: #92400e;
+}
+
+.rv-normal {
+    background: #f0fdf4;
+    color: #166534;
+}
 
 .badge {
     white-space: normal;
@@ -729,13 +678,6 @@ body,
 .progress-bar {
     border-radius: 999px;
     background: var(--rv-primary);
-}
-
-.rv-table .btn-sm {
-    padding: 6px 8px;
-    border-radius: 10px;
-    font-size: 12px;
-    white-space: nowrap;
 }
 
 .rv-toggle-wrap {
@@ -813,7 +755,6 @@ body,
     padding: 22px 0 0;
 }
 
-/* Màn laptop vừa: ẩn bớt chữ ở nút action để giao diện không tràn */
 @media (max-width: 1280px) {
     .reviewer-page {
         padding: 14px 14px 50px;
@@ -828,30 +769,71 @@ body,
         max-width: 22vw;
     }
 
-    .rv-table th,
-    .rv-table td {
-        padding-left: 8px;
-        padding-right: 8px;
-        font-size: 12px;
+    .rv-queue-head,
+    .rv-queue-row {
+        grid-template-columns: minmax(180px, 1.25fr) minmax(150px, 1fr) minmax(170px, .9fr) 96px;
+        gap: 12px;
     }
 
-    .rv-table .btn-sm {
-        font-size: 0;
-        width: 34px;
-        height: 32px;
-        padding: 0;
-        display: inline-flex;
+    .rv-hide-md {
+        display: none;
+    }
+
+    .rv-status-stack {
+        flex-direction: row;
+        flex-wrap: wrap;
         align-items: center;
-        justify-content: center;
-    }
-
-    .rv-table .btn-sm i {
-        font-size: 14px;
-        margin: 0 !important;
     }
 }
 
-/* Tablet/mobile: cho card xuống dòng, vẫn không kéo ngang */
+@media (max-width: 1100px) {
+    .rv-queue-head {
+        display: none;
+    }
+
+    .rv-table-box {
+        border: 0;
+        background: transparent;
+        display: grid;
+        gap: 12px;
+    }
+
+    .rv-queue-row {
+        grid-template-columns: 1fr;
+        align-items: start;
+        gap: 12px;
+        padding: 16px;
+        border: 1px solid var(--rv-line);
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, .05);
+    }
+
+    .rv-cell-label {
+        display: block;
+        color: var(--rv-muted);
+        font-size: 10px;
+        font-weight: 950;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        margin-bottom: 5px;
+    }
+
+    .rv-hide-md {
+        display: block;
+    }
+
+    .rv-status-stack {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .rv-action-btn {
+        width: auto;
+        min-width: 150px;
+    }
+}
+
 @media (max-width: 992px) {
     .reviewer-page {
         padding: 14px 12px 70px;
@@ -878,48 +860,9 @@ body,
     }
 
     .rv-notify-panel {
-        left: 0;
-        right: auto;
-    }
-
-    .rv-table thead {
-        display: none;
-    }
-
-    .rv-table,
-    .rv-table tbody,
-    .rv-table tr,
-    .rv-table td {
-        display: block;
-        width: 100% !important;
-    }
-
-    .rv-table tr {
-        border-bottom: 1px solid var(--rv-line);
-        padding: 10px;
-    }
-
-    .rv-table td {
-        border-bottom: 0;
-        padding: 7px 0;
-    }
-
-    .rv-table td::before {
-        content: attr(data-label);
-        display: block;
-        color: var(--rv-muted);
-        font-size: 11px;
-        font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: .4px;
-        margin-bottom: 3px;
-    }
-
-    .rv-table .btn-sm {
-        font-size: 12px;
+        left: 12px;
+        right: 12px;
         width: auto;
-        height: auto;
-        padding: 7px 10px;
     }
 }
 </style>
@@ -957,6 +900,11 @@ body,
                         <div class="rv-notify-head">
                             <strong>Notifications</strong>
                             <span class="rv-muted"><?= $unreadNotifications ?> unread</span>
+                            <?php if ($unreadNotifications > 0): ?>
+                                <a href="dashboard.php?mark_notifications_read=1" class="rv-muted small text-decoration-none">
+                                    Mark read
+                                </a>
+                            <?php endif; ?>
                         </div>
 
                         <?php foreach ($notifications as $n): ?>
@@ -1199,8 +1147,12 @@ body,
                                 <div class="rv-cell rv-hide-md">
                                     <span class="rv-cell-label">Status</span>
                                     <div class="rv-status-stack">
-                                        <span class="rv-pill <?= $priorityClass ?>"><i class="bi bi-flag-fill"></i><?= $priorityText ?></span>
-                                        <span class="badge text-bg-<?= statusBadge($app['status']) ?> rv-pill"><?= e(ucfirst($app['status'])) ?></span>
+                                        <span class="rv-pill <?= $priorityClass ?>">
+                                            <i class="bi bi-flag-fill"></i><?= $priorityText ?>
+                                        </span>
+                                        <span class="badge text-bg-<?= statusBadge($app['status']) ?> rv-pill">
+                                            <?= e(ucfirst($app['status'])) ?>
+                                        </span>
                                     </div>
                                 </div>
 
@@ -1312,37 +1264,27 @@ body,
                 <div class="rv-card rv-section">
                     <h4 class="rv-section-title">Recent Activity</h4>
 
-                    <div class="rv-activity">
-                        <div class="rv-activity-icon"><i class="bi bi-bell"></i></div>
-                        <div>
-                            <div class="fw-bold">Notifications checked</div>
-                            <div class="rv-muted">Just now</div>
+                    <?php if ($notifications): ?>
+                        <?php foreach (array_slice($notifications, 0, 4) as $activity): ?>
+                            <div class="rv-activity">
+                                <div class="rv-activity-icon"><i class="bi bi-bell"></i></div>
+                                <div>
+                                    <div class="fw-bold"><?= e($activity['title'] ?? 'Notification') ?></div>
+                                    <div class="rv-muted">
+                                        <?= e(date('d M Y, H:i', strtotime($activity['created_at'] ?? date('Y-m-d H:i:s')))) ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="rv-activity">
+                            <div class="rv-activity-icon"><i class="bi bi-inbox"></i></div>
+                            <div>
+                                <div class="fw-bold">No recent notifications</div>
+                                <div class="rv-muted">Waiting for new updates</div>
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="rv-activity">
-                        <div class="rv-activity-icon"><i class="bi bi-file-earmark-check"></i></div>
-                        <div>
-                            <div class="fw-bold"><?= $pendingEvidence ?> evidence documents pending</div>
-                            <div class="rv-muted">Today</div>
-                        </div>
-                    </div>
-
-                    <div class="rv-activity">
-                        <div class="rv-activity-icon"><i class="bi bi-star"></i></div>
-                        <div>
-                            <div class="fw-bold"><?= $scoredApplications ?> applications scored</div>
-                            <div class="rv-muted">Current review cycle</div>
-                        </div>
-                    </div>
-
-                    <div class="rv-activity">
-                        <div class="rv-activity-icon"><i class="bi bi-check2-circle"></i></div>
-                        <div>
-                            <div class="fw-bold"><?= $completedReviews ?> reviews completed</div>
-                            <div class="rv-muted">Overall progress</div>
-                        </div>
-                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -1358,7 +1300,6 @@ const bellButton = document.getElementById('bellButton');
 const notificationPanel = document.getElementById('notificationPanel');
 
 if (bellButton && notificationPanel) {
-
     bellButton.addEventListener('click', function(e) {
         e.stopPropagation();
         notificationPanel.classList.toggle('show');
@@ -1374,6 +1315,7 @@ if (bellButton && notificationPanel) {
         if (href.charAt(0) === '#') {
             e.preventDefault();
             notificationPanel.classList.remove('show');
+
             const target = document.querySelector(href);
             if (target) {
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1386,7 +1328,6 @@ if (bellButton && notificationPanel) {
     document.addEventListener('click', function() {
         notificationPanel.classList.remove('show');
     });
-
 }
 
 const globalSearch = document.getElementById('globalSearch');
@@ -1421,7 +1362,6 @@ function filterTable() {
     const searchValue = getSearchValue();
     const statusValue = statusFilter ? statusFilter.value.toLowerCase() : '';
     const priorityValue = priorityFilter ? priorityFilter.value.toLowerCase() : '';
-
     const hasFilter = searchValue !== '' || statusValue !== '' || priorityValue !== '';
 
     let visibleCount = 0;

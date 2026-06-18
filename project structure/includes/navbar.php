@@ -211,6 +211,12 @@ if ($bodyRoleClass) {
           </a>
         </li>
         <li class="nav-item">
+          <a href="<?= BASE_URL ?>/student/scholarships.php"
+             class="nav-link <?= navPageActive('scholarships.php') ?>">
+            <i class="bi bi-award"></i> Scholarships
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="<?= BASE_URL ?>/student/apply.php"
              class="nav-link <?= navPageActive('apply.php') ?>">
             <i class="bi bi-file-earmark-plus"></i> Apply

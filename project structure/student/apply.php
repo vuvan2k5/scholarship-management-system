@@ -166,18 +166,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $ext  = strtolower(pathinfo($orig, PATHINFO_EXTENSION));
                     $stor = 'ev_' . $newAppId . '_' . uniqid() . '.' . $ext;
                     if (move_uploaded_file($_FILES['evidence_files']['tmp_name'][$i], $uploadDir.$stor)) {
-                        $pdo->prepare(
-                            "INSERT INTO application_evidence
-                             (application_id,student_id,original_name,stored_name,file_path,file_size,file_type)
-                             VALUES (?,?,?,?,?,?,?)"
-                        )->execute([
-                            $newAppId, $studentId, $orig, $stor,
-                            $uploadWebDir.$stor,
-                            $_FILES['evidence_files']['size'][$i], $mime,
-                        ]);
+                        $filePath = 'uploads/evidence/' . $stor;
+
+                        // Update (or insert) evidence status to pending after upload.
+                        // NOTE: Current schema has no evidence_type/title columns.
+                        // We emulate evidence_type by using file_type (MIME) as a discriminator for the update.
+                        $stmtUpdate = $pdo->prepare("
+                            UPDATE application_evidence
+                            SET file_path = ?, status = 'pending', updated_at = NOW(), file_type = ?
+                            WHERE application_id = ? AND file_type = ?
+                        ");
+                        $stmtUpdate->execute([$filePath, $mime, $newAppId, $mime]);
+
+                        // If no rows were updated (e.g., first upload of this MIME type), insert a new evidence row.
+                        $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM application_evidence WHERE application_id=? AND file_type=? AND stored_name=?");
+                        $stmtCount->execute([$newAppId, $mime, $stor]);
+                        $exists = (int)$stmtCount->fetchColumn() > 0;
+
+                        if (!$exists) {
+                            $pdo->prepare(
+                                "INSERT INTO application_evidence
+                                 (application_id,student_id,original_name,stored_name,file_path,file_size,file_type)
+                                 VALUES (?,?,?,?,?,?,?)"
+                            )->execute([
+                                $newAppId, $studentId, $orig, $stor,
+                                $uploadWebDir . $stor,
+                                $_FILES['evidence_files']['size'][$i], $mime,
+                            ]);
+                        }
+
+                        // Notify reviewer/admins that new evidence has been uploaded.
+                        $reviewers = $pdo->query("
+                            SELECT id FROM users
+                            WHERE role IN ('reviewer','admin')
+                        ")->fetchAll(PDO::FETCH_ASSOC);
+
+                        foreach ($reviewers as $reviewer) {
+                            $pdo->prepare(
+                                "INSERT INTO notifications
+                                 (user_id, title, message, type, is_read, created_at)
+                                 VALUES (?, ?, ?, ?, 0, NOW())"
+                            )->execute([
+                                (int)$reviewer['id'],
+                                'New evidence uploaded',
+                                'A student has uploaded new evidence for review.',
+                                'evidence',
+                            ]);
+                        }
                     }
                 }
             }
+
 
             // ── Attach wallet documents ────────────────────
             $walletIds = $_POST['wallet_doc_ids'] ?? [];
@@ -221,7 +260,7 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/navbar.php';
 ?>
 
-<<<<<<< Updated upstream
+
 <div class="container py-4">
 
     <!-- PAGE HEADER -->
@@ -359,6 +398,8 @@ require_once __DIR__ . '/../includes/navbar.php';
     </div>
 
 =======
+=======
+>>>>>>> Stashed changes
 <!-- Page Header -->
 <div class="page-header">
   <div class="page-header-left">
@@ -380,6 +421,9 @@ require_once __DIR__ . '/../includes/navbar.php';
       <i class="bi bi-grid-3x3-gap"></i> All Scholarships
     </a>
   </div>
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 </div>
 

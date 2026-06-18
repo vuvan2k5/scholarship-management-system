@@ -85,13 +85,12 @@ $stmt = $pdo->prepare("
         profile.activities_count,
         profile.failed_subjects,
         profile.has_language_cert,
-        reviewer.full_name AS reviewer_name
+        NULL AS reviewer_name
     FROM application_evidence ev
     JOIN applications a ON a.id = ev.application_id
     JOIN users u ON u.id = a.student_id
     JOIN scholarship_programs sp ON sp.id = a.program_id
     LEFT JOIN student_profiles profile ON profile.student_id = u.id
-    LEFT JOIN users reviewer ON reviewer.id = ev.reviewed_by
     $where
     ORDER BY 
         CASE 
@@ -99,7 +98,7 @@ $stmt = $pdo->prepare("
             WHEN ev.status='rejected' THEN 1
             ELSE 2
         END,
-        ev.created_at DESC
+ev.uploaded_at DESC
 ");
 $stmt->execute($params);
 $evidences = $stmt->fetchAll();

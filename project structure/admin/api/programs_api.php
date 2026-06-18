@@ -66,7 +66,8 @@ switch ($action) {
         $slots       = (int)($body['slots'] ?? 0);
         $start_date  = safeStr($body['start_date'] ?? '');
         $end_date    = safeStr($body['end_date'] ?? '');
-        $status      = in_array($body['status'] ?? '', ['open', 'closed']) ? $body['status'] : 'open';
+        $validSt = ['open','closed','draft','suspended'];
+        $status  = in_array($body['status'] ?? '', $validSt) ? $body['status'] : 'open';
 
         if (!$name)       jsonError('Program name is required.');
         if ($budget <= 0) jsonError('Budget must be greater than 0.');
@@ -99,7 +100,8 @@ switch ($action) {
         $slots       = (int)($body['slots'] ?? 0);
         $start_date  = safeStr($body['start_date'] ?? '');
         $end_date    = safeStr($body['end_date'] ?? '');
-        $status      = in_array($body['status'] ?? '', ['open', 'closed']) ? $body['status'] : 'open';
+        $validSt = ['open','closed','draft','suspended'];
+        $status  = in_array($body['status'] ?? '', $validSt) ? $body['status'] : 'open';
 
         if (!$name)       jsonError('Program name is required.');
         if ($budget <= 0) jsonError('Budget must be greater than 0.');

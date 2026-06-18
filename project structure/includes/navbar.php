@@ -161,6 +161,52 @@ if ($bodyRoleClass) {
           </a>
         </li>
 
+        <li class="nav-item">
+          <a href="<?= BASE_URL ?>/admin/management_mail/index.php"
+             class="nav-link <?= navActive('/admin/management_mail/') ?>">
+            <i class="bi bi-envelope-paper"></i> Management Mail
+            <?php
+              if (function_exists('getDB')) {
+                try {
+                  $pdo3 = getDB();
+                  $chk  = $pdo3->query("SHOW TABLES LIKE 'mail_log'");
+                  if ($chk && $chk->rowCount() > 0) {
+                    $mc = (int)$pdo3->query("SELECT COUNT(*) FROM mail_log WHERE status='pending'")->fetchColumn();
+                    if ($mc > 0) echo "<span style='margin-left:auto;background:#f59e0b;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;'>$mc</span>";
+                  }
+                } catch(Exception $e) {}
+              }
+            ?>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="<?= BASE_URL ?>/admin/communication_center/index.php"
+             class="nav-link <?= navActive('/admin/communication_center/') ?>">
+            <i class="bi bi-chat-square-dots"></i> Communication Center
+            <?php
+              // Unread counter: notifications (primary) + messages tables
+              if (function_exists('getDB') && function_exists('currentUserId')) {
+                try {
+                  $pdo4   = getDB();
+                  $uid4   = currentUserId();
+                  if ($uid4) {
+                    // Always count from notifications (main source)
+                    $unread4 = (int)$pdo4->query("SELECT COUNT(*) FROM notifications WHERE user_id=$uid4 AND is_read=0")->fetchColumn();
+                    // Also count from messages tables if they exist
+                    $chk4 = $pdo4->query("SHOW TABLES LIKE 'messages'");
+                    if ($chk4 && $chk4->rowCount() > 0) {
+                      $unread4 += (int)$pdo4->query("SELECT COUNT(*) FROM messages WHERE recipient_id=$uid4 AND is_read=0")->fetchColumn();
+                      $unread4 += (int)$pdo4->query("SELECT COUNT(*) FROM message_recipients WHERE recipient_id=$uid4 AND is_read=0")->fetchColumn();
+                    }
+                    if ($unread4 > 0) echo "<span style='margin-left:auto;background:#ef4444;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;'>$unread4</span>";
+                  }
+                } catch(Exception $e) {}
+              }
+            ?>
+          </a>
+        </li>
+
       <?php elseif ($role === 'reviewer'): ?>
 
         <li class="nav-section-label">Reviewer Panel</li>

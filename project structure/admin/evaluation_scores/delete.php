@@ -1,32 +1,17 @@
 <?php
 // ============================================================
 // admin/evaluation_scores/delete.php
+// Disabled for Admin: evaluation scores must not be deleted
+// from the admin panel — they are official reviewer records.
 // ============================================================
-
 require_once '../../config/db.php';
 require_once '../../includes/auth.php';
-
 requireLogin();
 requireRole('admin');
 
-require_once 'helpers.php';
-
-$pdo = getDB();
-$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-
-if ($id) {
-    $findStmt = $pdo->prepare('SELECT application_id FROM evaluation_scores WHERE id = ?');
-    $findStmt->execute([$id]);
-    $row = $findStmt->fetch();
-    $applicationId = $row ? intval($row['application_id']) : null;
-
-    $deleteStmt = $pdo->prepare('DELETE FROM evaluation_scores WHERE id = ?');
-    $deleteStmt->execute([$id]);
-
-    if ($applicationId) {
-        processApplicationScores($pdo, $applicationId);
-    }
-}
-
+setFlash('warning',
+    'Evaluation score records cannot be deleted. '
+    . 'They are official reviewer submissions used in Ranking Results.'
+);
 header('Location: index.php');
 exit;

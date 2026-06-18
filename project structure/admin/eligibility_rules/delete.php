@@ -1,8 +1,8 @@
 <?php
 // ============================================================
 // admin/eligibility_rules/delete.php
+// Deletes an eligibility rule with flash feedback.
 // ============================================================
-
 require_once '../../config/db.php';
 require_once '../../includes/auth.php';
 
@@ -10,17 +10,31 @@ requireLogin();
 requireRole('admin');
 
 $pdo = getDB();
+$id  = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-if (!isset($_GET['id'])) {
-    die("Invalid request.");
+if (!$id) {
+    header('Location: index.php');
+    exit;
 }
 
-$id = (int)$_GET['id'];
+// Fetch for confirmation message
+$stmt = $pdo->prepare("
+    SELECT er.id, er.rule_type, er.operator, er.value, sp.name AS program_name
+    FROM eligibility_rules er
+    JOIN scholarship_programs sp ON er.program_id = sp.id
+    WHERE er.id = ?
+");
+$stmt->execute([$id]);
+$rule = $stmt->fetch();
 
-// Delete rule
-$sql = "DELETE FROM eligibility_rules WHERE id = :id";
-$stmt = $pdo->prepare($sql);
-$stmt->execute([':id' => $id]);
+if (!$rule) {
+    setFlash('error', 'Rule not found.');
+    header('Location: index.php');
+    exit;
+}
 
-header("Location: index.php");
+$pdo->prepare("DELETE FROM eligibility_rules WHERE id = ?")->execute([$id]);
+
+setFlash('success', "Rule #{$id} ({$rule['rule_type']} {$rule['operator']} {$rule['value']}) removed from \"{$rule['program_name']}\".");
+header('Location: index.php');
 exit;

@@ -27,6 +27,11 @@
 .badge-status-failed     { background: #fee2e2; color: #991b1b; }
 .badge-status-active     { background: #d1fae5; color: #065f46; }
 .badge-status-inactive   { background: #f1f5f9; color: #475569; }
+.badge-status-draft      { background: #f1f5f9; color: #475569; }
+.badge-status-disbursed  { background: #ede9fe; color: #5b21b6; }
+
+/* ── Dashboard: notification list separator ───────────────────── */
+.dash-notif-list li:last-child { border-bottom: none !important; }
 
 /* ── Action button min-width ─────────────────────────────────── */
 .btn-action { min-width: 72px; }

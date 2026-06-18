@@ -1,26 +1,14 @@
 <?php
 // ============================================================
 // admin/eligibility_results/delete.php
+// Removed: Eligibility results must not be manually deleted.
+// Results are engine-generated audit records.
 // ============================================================
-
 require_once '../../config/db.php';
 require_once '../../includes/auth.php';
-
 requireLogin();
 requireRole('admin');
 
-$pdo = getDB();
-
-if (!isset($_GET['id'])) {
-    die("Invalid request.");
-}
-
-$id = (int)$_GET['id'];
-
-// Delete result
-$sql = "DELETE FROM eligibility_results WHERE id = ?";
-$stmt = $pdo->prepare($sql);
-$stmt->execute([$id]);
-
-header("Location: index.php");
+setFlash('warning', 'Eligibility results cannot be deleted. They are engine-generated audit records.');
+header('Location: index.php');
 exit;

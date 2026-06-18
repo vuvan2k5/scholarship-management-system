@@ -1,21 +1,13 @@
 <?php
 // ============================================================
-// admin/applications/delete.php
+// admin/applications/delete.php  –  DISABLED BY POLICY
+// Admin is not permitted to delete application records.
 // ============================================================
-
 require_once '../../config/db.php';
 require_once '../../includes/auth.php';
-
 requireLogin();
 requireRole('admin');
 
-$pdo = getDB();
-$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-
-if ($id) {
-    $stmt = $pdo->prepare('DELETE FROM applications WHERE id = ?');
-    $stmt->execute([$id]);
-}
-
-header('Location: index.php');
+// Hard redirect — SQL DELETE intentionally removed
+header('Location: index.php?policy=no_delete');
 exit;

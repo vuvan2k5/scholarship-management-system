@@ -1,9 +1,12 @@
 <?php
 // ============================================================
 // admin/eligibility_results/view.php
+// Read-only detail view for a single eligibility result.
+// Displays: student info, eligibility status, fail reasons,
+// rule-by-rule breakdown, and reviewer verification status.
+// Admin cannot edit. PASS/FAIL is engine-generated only.
 // ============================================================
-
-$pageTitle = 'View Eligibility Result';
+$pageTitle = 'Eligibility Result Detail';
 
 require_once '../../config/db.php';
 require_once '../../includes/auth.php';
@@ -11,90 +14,376 @@ require_once '../../includes/auth.php';
 requireLogin();
 requireRole('admin');
 
-require_once '../../includes/header.php';
-require_once '../../includes/navbar.php';
-
 $pdo = getDB();
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$id  = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-$sql = "
-    SELECT er.*, a.id AS application_number, u.full_name AS student_name, sp.name AS program_name
+if (!$id) {
+    header('Location: index.php');
+    exit;
+}
+
+// ── Fetch result + student + program ─────────────────────────
+$stmt = $pdo->prepare("
+    SELECT
+        er.id,
+        er.application_id,
+        er.is_passed,
+        er.reason,
+        er.rule_trace,
+        er.checked_at,
+        er.reviewer_verification_status,
+        a.id            AS app_id,
+        a.submitted_at,
+        u.full_name     AS student_name,
+        u.student_code,
+        u.email         AS student_email,
+        sp.name         AS program_name,
+        sp.id           AS program_id,
+        cb.full_name    AS checked_by_name
     FROM eligibility_results er
-    INNER JOIN applications a ON er.application_id = a.id
-    INNER JOIN users u ON a.student_id = u.id
-    INNER JOIN scholarship_programs sp ON a.program_id = sp.id
-    WHERE er.id = :id
+    JOIN applications a  ON er.application_id = a.id
+    JOIN users u         ON a.student_id = u.id
+    JOIN scholarship_programs sp ON a.program_id = sp.id
+    LEFT JOIN users cb   ON er.checked_by = cb.id
+    WHERE er.id = ?
     LIMIT 1
-";
-$stmt = $pdo->prepare($sql);
-$stmt->execute([':id' => $id]);
-$result = $stmt->fetch();
+");
+$stmt->execute([$id]);
+$r = $stmt->fetch();
 
-if (!$result) {
-    echo '<div class="container py-5"><div class="alert alert-danger">Eligibility result not found.</div></div>';
+if (!$r) {
+    require_once '../../includes/header.php';
+    require_once '../../includes/navbar.php';
+    echo '<div class="page-header"><div class="page-header-left">
+          <h1 class="page-title">Not Found</h1></div>
+          <a href="index.php" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back</a></div>
+          <div class="alert alert-danger">Eligibility result not found.</div>';
     require_once '../../includes/footer.php';
     exit;
 }
+
+// ── Parse rule trace ──────────────────────────────────────────
+$ruleTrace = [];
+if (!empty($r['rule_trace'])) {
+    $decoded = json_decode($r['rule_trace'], true);
+    if (is_array($decoded)) $ruleTrace = $decoded;
+}
+
+// ── Parse fail reasons ────────────────────────────────────────
+$failParts = [];
+$reason = $r['reason'] ?? '';
+if (!$r['is_passed'] && str_starts_with($reason, 'Failed criteria:')) {
+    $txt = trim(substr($reason, strlen('Failed criteria:')));
+    $failParts = array_values(array_filter(array_map('trim', explode(';', $txt))));
+}
+
+// ── Reviewer verifications for this result ────────────────────
+$verifications = $pdo->prepare("
+    SELECT rv.*, u.full_name AS reviewer_name
+    FROM reviewer_verifications rv
+    JOIN users u ON rv.reviewer_id = u.id
+    WHERE rv.eligibility_id = ?
+    ORDER BY rv.created_at DESC
+");
+$verifications->execute([$id]);
+$verifications = $verifications->fetchAll();
+
+$verifStatus = $r['reviewer_verification_status'] ?? 'pending';
+
+require_once '../../includes/header.php';
+require_once '../../includes/navbar.php';
 ?>
 
-<div class="container py-4">
-    <!-- PAGE HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="page-title">Eligibility Result Detail</h1>
-            <p class="page-subtitle">Detailed check outcome for Application #<?= e($result['application_number']) ?></p>
+<!-- ── Page Header ──────────────────────────────────────────── -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">
+      Eligibility Result #<?= e($r['id']) ?>
+    </h1>
+    <p class="page-subtitle">
+      Detail for Application #<?= e($r['app_id']) ?> ·
+      <span style="color:var(--gray-400);">Engine-generated result — read only</span>
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="export.php?format=pdf&id=<?= $r['id'] ?>"
+       class="btn btn-danger" id="btn-export-pdf">
+      <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+    </a>
+    <a href="index.php" class="btn btn-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back
+    </a>
+  </div>
+</div>
+
+<!-- ── Read-only notice ───────────────────────────────────────── -->
+<div class="alert alert-info mb-4" style="border-left:4px solid var(--info);font-size:13px;padding:10px 16px;">
+  <i class="bi bi-shield-lock me-2"></i>
+  <strong>Read Only:</strong> This result was generated by the Eligibility Engine.
+  Administrators cannot manually change the PASS / FAIL status.
+</div>
+
+<div class="row g-4">
+
+  <!-- ── LEFT: Student + Result ─────────────────────────────── -->
+  <div class="col-lg-5">
+
+    <!-- Student Info -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="card-title mb-3" style="padding-bottom:10px;border-bottom:1px solid var(--gray-100);">
+          <i class="bi bi-person me-2" style="color:var(--primary);"></i>Student Information
         </div>
-        <a href="index.php" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-2"></i> Back to List
-        </a>
+        <dl style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0;font-size:13.5px;">
+          <dt style="color:var(--gray-500);font-weight:500;">Full Name</dt>
+          <dd style="margin:0;font-weight:700;"><?= e($r['student_name']) ?></dd>
+
+          <dt style="color:var(--gray-500);font-weight:500;">Student ID</dt>
+          <dd style="margin:0;font-family:monospace;color:var(--primary);">
+            <?= e($r['student_code'] ?: '—') ?>
+          </dd>
+
+          <dt style="color:var(--gray-500);font-weight:500;">Email</dt>
+          <dd style="margin:0;"><?= e($r['student_email'] ?: '—') ?></dd>
+
+          <dt style="color:var(--gray-500);font-weight:500;">Program</dt>
+          <dd style="margin:0;"><?= e($r['program_name']) ?></dd>
+
+          <dt style="color:var(--gray-500);font-weight:500;">Application</dt>
+          <dd style="margin:0;">
+            <a href="../applications/view.php?id=<?= $r['app_id'] ?>" class="text-primary fw-semibold">
+              #<?= e($r['app_id']) ?>
+            </a>
+          </dd>
+
+          <dt style="color:var(--gray-500);font-weight:500;">Submitted</dt>
+          <dd style="margin:0;">
+            <?= $r['submitted_at'] ? e(date('d M Y, H:i', strtotime($r['submitted_at']))) : '—' ?>
+          </dd>
+        </dl>
+      </div>
     </div>
 
-    <!-- DETAIL CARD -->
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title mb-4"><i class="bi bi-info-circle me-2 text-primary"></i> Verification Details</h5>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small d-block">Result ID</label>
-                            <strong>#<?= e($result['id']) ?></strong>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small d-block">Application ID</label>
-                            <strong>#<?= e($result['application_number']) ?></strong>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small d-block">Student Name</label>
-                            <strong><?= e($result['student_name']) ?></strong>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small d-block">Scholarship Program</label>
-                            <strong><?= e($result['program_name']) ?></strong>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small d-block">Status</label>
-                            <?php if ($result['is_passed'] == 1): ?>
-                                <span class="badge bg-success"><i class="bi bi-check2 me-1"></i> PASS</span>
-                            <?php else: ?>
-                                <span class="badge bg-danger"><i class="bi bi-x me-1"></i> FAIL</span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small d-block">Checked At</label>
-                            <strong><?= e($result['checked_at']) ?></strong>
-                        </div>
-                        <div class="col-12 mb-3">
-                            <label class="text-muted small d-block">Reason / Explanation</label>
-                            <p class="mb-0 bg-light p-3 rounded text-dark border-start border-4 border-info">
-                                <?= e($result['reason'] ? $result['reason'] : 'No comments provided. Automatically passed eligibility checks.') ?>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Eligibility Status -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="card-title mb-3" style="padding-bottom:10px;border-bottom:1px solid var(--gray-100);">
+          <i class="bi bi-cpu me-2" style="color:var(--primary);"></i>Eligibility Status
         </div>
+
+        <!-- Big status badge -->
+        <div style="text-align:center;padding:20px 0 16px;">
+          <?php if ($r['is_passed']): ?>
+            <div style="display:inline-flex;flex-direction:column;align-items:center;gap:8px;">
+              <div style="width:64px;height:64px;border-radius:50%;
+                          background:rgba(22,163,74,.12);border:3px solid var(--success);
+                          display:flex;align-items:center;justify-content:center;">
+                <i class="bi bi-patch-check-fill" style="font-size:28px;color:var(--success);"></i>
+              </div>
+              <div style="font-size:22px;font-weight:900;color:var(--success);letter-spacing:-.02em;">PASS</div>
+              <div style="font-size:12px;color:var(--gray-400);">Meets all eligibility criteria</div>
+            </div>
+          <?php else: ?>
+            <div style="display:inline-flex;flex-direction:column;align-items:center;gap:8px;">
+              <div style="width:64px;height:64px;border-radius:50%;
+                          background:rgba(220,38,38,.1);border:3px solid var(--danger);
+                          display:flex;align-items:center;justify-content:center;">
+                <i class="bi bi-shield-exclamation" style="font-size:28px;color:var(--danger);"></i>
+              </div>
+              <div style="font-size:22px;font-weight:900;color:var(--danger);letter-spacing:-.02em;">FAIL</div>
+              <div style="font-size:12px;color:var(--gray-400);">Does not meet eligibility criteria</div>
+            </div>
+          <?php endif; ?>
+        </div>
+
+        <dl style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0;font-size:13px;">
+          <dt style="color:var(--gray-500);font-weight:500;">Evaluated At</dt>
+          <dd style="margin:0;">
+            <?= $r['checked_at'] ? e(date('d M Y, H:i', strtotime($r['checked_at']))) : '—' ?>
+          </dd>
+
+          <?php if ($r['checked_by_name']): ?>
+          <dt style="color:var(--gray-500);font-weight:500;">Evaluated By</dt>
+          <dd style="margin:0;"><?= e($r['checked_by_name']) ?></dd>
+          <?php endif; ?>
+        </dl>
+      </div>
     </div>
-</div>
+
+    <!-- Reviewer Verification Status -->
+    <div class="card">
+      <div class="card-body">
+        <div class="card-title mb-3" style="padding-bottom:10px;border-bottom:1px solid var(--gray-100);">
+          <i class="bi bi-person-badge me-2" style="color:var(--info);"></i>Reviewer Verification
+        </div>
+        <?php
+        $vIcon  = match($verifStatus) { 'verified'=>'bi-person-check-fill','rejected'=>'bi-person-x-fill', default=>'bi-hourglass-split' };
+        $vColor = match($verifStatus) { 'verified'=>'var(--success)','rejected'=>'var(--danger)', default=>'var(--warning)' };
+        $vLabel = match($verifStatus) { 'verified'=>'Verified','rejected'=>'Rejected', default=>'Pending Verification' };
+        ?>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <i class="bi <?= $vIcon ?>" style="font-size:22px;color:<?= $vColor ?>;"></i>
+          <span style="font-size:15px;font-weight:700;color:<?= $vColor ?>;"><?= $vLabel ?></span>
+        </div>
+
+        <?php if ($verifications): ?>
+          <div style="font-size:12.5px;color:var(--gray-600);">
+            <?php foreach ($verifications as $vf): ?>
+              <div style="border:1px solid var(--gray-200);border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+                <div style="font-weight:600;"><?= e($vf['reviewer_name']) ?></div>
+                <div style="color:var(--gray-400);font-size:11px;">
+                  <?= e(date('d M Y, H:i', strtotime($vf['created_at']))) ?>
+                </div>
+                <?php if ($vf['notes']): ?>
+                  <div style="margin-top:4px;color:var(--gray-600);"><?= e($vf['notes']) ?></div>
+                <?php endif; ?>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        <?php else: ?>
+          <p style="font-size:12.5px;color:var(--gray-400);margin:0;">No reviewer verification recorded yet.</p>
+        <?php endif; ?>
+      </div>
+    </div>
+
+  </div><!-- /col-lg-5 -->
+
+  <!-- ── RIGHT: Fail Reasons + Rule Breakdown ─────────────── -->
+  <div class="col-lg-7">
+
+    <!-- Fail Reasons -->
+    <?php if (!$r['is_passed']): ?>
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="card-title mb-3" style="padding-bottom:10px;border-bottom:1px solid var(--gray-100);">
+          <i class="bi bi-x-circle me-2" style="color:var(--danger);"></i>Fail Reasons
+        </div>
+        <?php if ($failParts): ?>
+          <ul style="margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:8px;">
+            <?php foreach ($failParts as $i => $fp): ?>
+              <li style="display:flex;align-items:flex-start;gap:10px;
+                         background:rgba(220,38,38,.05);border:1px solid rgba(220,38,38,.15);
+                         border-radius:8px;padding:10px 14px;">
+                <div style="width:22px;height:22px;border-radius:50%;background:var(--danger);
+                             display:flex;align-items:center;justify-content:center;
+                             flex-shrink:0;margin-top:1px;">
+                  <span style="color:#fff;font-size:10px;font-weight:700;"><?= $i + 1 ?></span>
+                </div>
+                <span style="font-size:13px;color:var(--danger);line-height:1.5;"><?= e($fp) ?></span>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+        <?php else: ?>
+          <p style="font-size:13px;color:var(--gray-500);margin:0;">
+            <?= e($reason ?: 'No detailed fail reason recorded.') ?>
+          </p>
+        <?php endif; ?>
+      </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Rule Breakdown -->
+    <div class="card">
+      <div class="card-body">
+        <div class="card-title mb-3" style="padding-bottom:10px;border-bottom:1px solid var(--gray-100);">
+          <i class="bi bi-list-check me-2" style="color:var(--primary);"></i>
+          Rule Breakdown
+          <?php if ($ruleTrace): ?>
+            <span style="font-size:12px;font-weight:400;color:var(--gray-400);margin-left:6px;">
+              <?= count(array_filter($ruleTrace, fn($t) => $t['passed'] ?? true)) ?>/<?= count($ruleTrace) ?> rules passed
+            </span>
+          <?php endif; ?>
+        </div>
+
+        <?php if (empty($ruleTrace)): ?>
+          <div style="text-align:center;padding:28px 0;color:var(--gray-400);">
+            <i class="bi bi-info-circle" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+            <div style="font-size:13px;">
+              Rule breakdown not available for this result.<br>
+              Re-run the Eligibility Engine to generate a detailed trace.
+            </div>
+            <a href="../eligibility_engine/index.php?check_id=<?= $r['app_id'] ?>"
+               class="btn btn-sm btn-outline-primary mt-3"
+               onclick="return confirm('Re-evaluate this application to generate rule trace?')">
+              <i class="bi bi-arrow-repeat me-1"></i> Re-evaluate Now
+            </a>
+          </div>
+        <?php else: ?>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <?php foreach ($ruleTrace as $tr):
+              $trPassed  = $tr['passed'] ?? null;
+              $trSkipped = ($trPassed === null);
+              $trColor   = $trSkipped ? 'var(--gray-400)' : ($trPassed ? 'var(--success)' : 'var(--danger)');
+              $trBg      = $trSkipped ? 'var(--gray-50)'   : ($trPassed ? 'rgba(22,163,74,.05)' : 'rgba(220,38,38,.05)');
+              $trBorder  = $trSkipped ? 'var(--gray-200)'  : ($trPassed ? 'rgba(22,163,74,.2)'  : 'rgba(220,38,38,.2)');
+            ?>
+              <div style="border:1px solid <?= $trBorder ?>;border-radius:8px;padding:12px 14px;background:<?= $trBg ?>;">
+                <!-- Rule header row -->
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <?php if ($trSkipped): ?>
+                      <i class="bi bi-dash-circle" style="color:var(--gray-300);font-size:16px;"></i>
+                    <?php elseif ($trPassed): ?>
+                      <i class="bi bi-check-circle-fill" style="color:var(--success);font-size:16px;"></i>
+                    <?php else: ?>
+                      <i class="bi bi-x-circle-fill" style="color:var(--danger);font-size:16px;"></i>
+                    <?php endif; ?>
+                    <div>
+                      <strong style="font-size:13.5px;"><?= e($tr['label'] ?? $tr['rule_type'] ?? 'Rule') ?></strong>
+                      <?php if (isset($tr['rule_id'])): ?>
+                        <span style="font-size:11px;color:var(--gray-400);margin-left:4px;">#<?= e($tr['rule_id']) ?></span>
+                      <?php endif; ?>
+                    </div>
+                  </div>
+                  <span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:99px;
+                                background:<?= $trSkipped ? 'var(--gray-100)' : ($trPassed ? 'rgba(22,163,74,.12)' : 'rgba(220,38,38,.1)') ?>;
+                                color:<?= $trColor ?>;">
+                    <?= $trSkipped ? 'Skipped' : ($trPassed ? 'PASS' : 'FAIL') ?>
+                  </span>
+                </div>
+
+                <!-- Rule values grid -->
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+                  <div style="background:#fff;border:1px solid var(--gray-200);border-radius:6px;
+                               padding:8px 12px;text-align:center;">
+                    <div style="font-size:10px;color:var(--gray-400);text-transform:uppercase;
+                                 letter-spacing:.05em;margin-bottom:4px;">Required</div>
+                    <div style="font-family:monospace;font-size:14px;font-weight:700;color:var(--gray-700);">
+                      <?= e($tr['operator'] ?? '') ?> <?= e($tr['expected'] ?? '—') ?>
+                    </div>
+                  </div>
+                  <div style="background:#fff;border:1px solid var(--gray-200);border-radius:6px;
+                               padding:8px 12px;text-align:center;">
+                    <div style="font-size:10px;color:var(--gray-400);text-transform:uppercase;
+                                 letter-spacing:.05em;margin-bottom:4px;">Student Value</div>
+                    <div style="font-family:monospace;font-size:14px;font-weight:700;color:<?= $trColor ?>;">
+                      <?= e($tr['actual'] ?? 'N/A') ?>
+                    </div>
+                  </div>
+                  <div style="background:#fff;border:1px solid var(--gray-200);border-radius:6px;
+                               padding:8px 12px;text-align:center;">
+                    <div style="font-size:10px;color:var(--gray-400);text-transform:uppercase;
+                                 letter-spacing:.05em;margin-bottom:4px;">Result</div>
+                    <div style="font-size:18px;">
+                      <?= $trSkipped ? '—' : ($trPassed ? '✓' : '✗') ?>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Fail reason for this rule -->
+                <?php if (!$trPassed && !$trSkipped && !empty($tr['fail_reason'])): ?>
+                  <div style="margin-top:8px;font-size:12px;color:var(--danger);
+                               padding:6px 10px;background:rgba(220,38,38,.06);border-radius:6px;">
+                    <i class="bi bi-info-circle me-1"></i><?= e($tr['fail_reason']) ?>
+                  </div>
+                <?php endif; ?>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div><!-- /col-lg-7 -->
+</div><!-- /row -->
 
 <?php require_once '../../includes/footer.php'; ?>

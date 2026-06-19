@@ -116,16 +116,20 @@ try {
     $applications = [];
 }
 
+$reviewerId = currentUserId();
 $notifications = [];
 
 if (tableExists($pdo, 'notifications')) {
     try {
-        $notifications = $pdo->query("
+        $stmt = $pdo->prepare("
             SELECT id, title, message, type, created_at, is_read
             FROM notifications
+            WHERE user_id = ?
             ORDER BY created_at DESC
             LIMIT 8
-        ")->fetchAll();
+        ");
+        $stmt->execute([$reviewerId]);
+        $notifications = $stmt->fetchAll();
     } catch (Exception $e) {
         $notifications = [];
     }

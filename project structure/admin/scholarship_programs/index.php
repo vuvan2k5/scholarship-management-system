@@ -8,6 +8,7 @@ $pageTitle = 'Scholarship Programs';
 
 require_once '../../config/db.php';
 require_once '../../includes/auth.php';
+require_once '../../includes/notifications.php';
 
 requireLogin();
 requireRole('admin');
@@ -43,11 +44,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['req_action'])) {
     $newStatus = ($reqAct === 'approve') ? 'approved' : 'rejected';
 
     if ($reqId > 0) {
+        $reqStmt = $pdo->prepare("SELECT * FROM program_requests WHERE id = ?");
+        $reqStmt->execute([$reqId]);
+        $reqRow = $reqStmt->fetch();
+
         $pdo->prepare("
             UPDATE program_requests
             SET status = ?, admin_id = ?, admin_note = ?, responded_at = NOW()
             WHERE id = ?
         ")->execute([$newStatus, $adminId, $adminNote ?: null, $reqId]);
+
+        if ($reqRow && !empty($reqRow['reviewer_id'])) {
+            if ($reqAct === 'approve') {
+                $notifyTitle = 'Program Request Approved';
+                $notifyMessage = "Your program request #{$reqId} has been approved.";
+                $notifyType = 'success';
+            } else {
+                $notifyTitle = 'Program Request Rejected';
+                $notifyMessage = "Your program request #{$reqId} has been rejected.";
+                $notifyType = 'warning';
+            }
+            if ($adminNote !== '') {
+                $notifyMessage .= ' Admin note: ' . $adminNote;
+            }
+            sendNotification($pdo, (int)$reqRow['reviewer_id'], $notifyTitle, $notifyMessage, $notifyType);
+        }
 
         // If approved + type=suspend, set program status to 'suspended'
         if ($reqAct === 'approve') {

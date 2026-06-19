@@ -73,10 +73,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reply_body'])) {
         $replySubject = 'Re: ' . $msg['subject'];
         sendInternalMessage($pdo, $adminId, $replyTo, $replySubject, $replyBody, 'reply', $msgId);
         setFlash('success', 'Reply sent.');
-        header('Location: view.php?id=' . $msgId);
-        exit;
+    } else {
+        setFlash('error', 'Reply body is required.');
     }
-    setFlash('error', 'Reply body is required.');
+    // PRG: always redirect after POST so refresh/back cannot resubmit
+    header('Location: view.php?id=' . $msgId);
+    exit;
 }
 
 $roleColors = ['admin'=>'badge-info','student'=>'badge-warning','reviewer'=>'badge-eligible'];
@@ -106,7 +108,7 @@ require_once '../../includes/navbar.php';
   </div>
   <div class="d-flex gap-2">
     <a href="index.php" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left me-1"></i>Back
+      <i class="bi bi-arrow-left me-1"></i>Back to Communication Center
     </a>
     <?php if ($msg['sender_id'] !== $adminId): ?>
       <a href="compose.php?reply_to=<?= $msgId ?>" class="btn btn-primary" id="btn-reply-top">
@@ -117,6 +119,13 @@ require_once '../../includes/navbar.php';
 </div>
 
 <?php showFlash(); ?>
+
+<!-- ── Back navigation bar ────────────────────────────────── -->
+<div class="mb-3">
+  <a href="index.php" class="btn btn-secondary">
+    <i class="bi bi-arrow-left me-2"></i>Back to Communication Center
+  </a>
+</div>
 
 <div class="row g-4">
 
@@ -208,7 +217,11 @@ require_once '../../includes/navbar.php';
           <div class="card-title mb-3" style="padding-bottom:10px;border-bottom:1px solid var(--gray-100);">
             <i class="bi bi-reply me-2" style="color:var(--primary);"></i>Reply to <?= e($msg['sender_name']) ?>
           </div>
-          <form method="POST" id="reply-form">
+          <form method="POST" id="reply-form"
+                onsubmit="if(!confirm('Send this reply?'))return false;
+                          var b=document.getElementById('btn-send-reply');
+                          b.disabled=true;b.innerHTML='<i class=\'bi bi-hourglass-split me-2\'></i>Sending…';
+                          return true;">
             <div class="mb-3">
               <input type="text" class="form-control form-control-sm mb-2"
                      value="Re: <?= e($msg['subject']) ?>" readonly
@@ -216,8 +229,7 @@ require_once '../../includes/navbar.php';
               <textarea name="reply_body" class="form-control" rows="5"
                         placeholder="Type your reply…" required id="reply-body"></textarea>
             </div>
-            <button type="submit" class="btn btn-primary" id="btn-send-reply"
-                    onclick="return confirm('Send this reply?')">
+            <button type="submit" class="btn btn-primary" id="btn-send-reply">
               <i class="bi bi-send me-2"></i>Send Reply
             </button>
           </form>

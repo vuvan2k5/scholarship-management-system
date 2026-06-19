@@ -10,17 +10,6 @@ $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    if (isset($_POST['demo_login'])) {
-        $_SESSION['user_id'] = 2;
-        $_SESSION['user_name'] = 'Reviewer';
-        $_SESSION['role'] = 'reviewer';
-        $_SESSION['email'] = 'reviewer@scholarship.edu.vn';
-        $_SESSION['student_code'] = '';
-
-        header('Location: reviewer/dashboard.php');
-        exit;
-    }
-
     $email    = trim($_POST['email'] ?? '');
     $password = trim($_POST['password'] ?? '');
 
@@ -51,20 +40,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: login.php'); exit;
             }
         } else {
-          // TEST FALLBACK: chỉ cho phép reviewer/council login bằng mật khẩu test 123456
-if ($user && in_array($user['role'], ['reviewer', 'council']) && $password === '123456') {
-    $userRole = 'reviewer';
-
-    $_SESSION['user_id']      = $user['id'];
-    $_SESSION['user_name']    = $user['full_name'];
-    $_SESSION['role']         = $userRole;
-    $_SESSION['email']        = $user['email'];
-    $_SESSION['student_code'] = '';
-
-    header('Location: reviewer/dashboard.php');
-    exit;
-}
-
             $error = 'Invalid email or password.';
         }
     }

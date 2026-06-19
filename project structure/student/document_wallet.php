@@ -34,15 +34,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
     $doc = $row->fetch();
     if ($doc) {
         // Only delete physical file if not referenced by any application_evidence
-        $refCount = (int)$pdo->prepare(
-            "SELECT COUNT(*) FROM application_evidence WHERE wallet_doc_id=?"
-        )->execute([$delId]) ? $pdo->query("SELECT FOUND_ROWS()")->fetchColumn() : 0;
+        // Count how many application records still reference this wallet document.
+        // Use fetchColumn() to get the COUNT(*) result (avoid the broken FOUND_ROWS() logic).
+        $stmt = $pdo->prepare(
+    "SELECT COUNT(*) FROM application_evidence WHERE wallet_doc_id=?"
+);
 
-        $physPath = $uploadDir . $doc['stored_name'];
-        if (file_exists($physPath)) @unlink($physPath);
+$stmt->execute([$delId]);
 
-        $pdo->prepare("DELETE FROM student_documents WHERE id=? AND student_id=?"
-        )->execute([$delId, $studentId]);
+$refCount = (int)$stmt->fetchColumn();
+
+$physPath = $uploadDir . $doc['stored_name'];
+
+if ($refCount === 0) {
+    if (file_exists($physPath)) {
+        @unlink($physPath);
+    }
+}
+
+$pdo->prepare("DELETE FROM student_documents WHERE id=? AND student_id=?")
+    ->execute([$delId, $studentId]);
         setFlash('success', 'Deleted document "' . htmlspecialchars($doc['display_name']) . '".');
     }
     header('Location: document_wallet.php');

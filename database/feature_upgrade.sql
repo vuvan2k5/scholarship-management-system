@@ -34,3 +34,24 @@ ALTER TABLE application_evidence
     ADD CONSTRAINT fk_evidence_wallet
         FOREIGN KEY (wallet_doc_id) REFERENCES student_documents(id)
         ON DELETE SET NULL;
+    CREATE TABLE reviewer_decisions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    application_id INT NOT NULL,
+    reviewer_id INT NOT NULL,
+    decision VARCHAR(50) NOT NULL,
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX idx_application_id (application_id),
+    INDEX idx_reviewer_id (reviewer_id),
+
+    CONSTRAINT fk_reviewer_decisions_application
+        FOREIGN KEY (application_id)
+        REFERENCES applications(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_reviewer_decisions_reviewer
+        FOREIGN KEY (reviewer_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;

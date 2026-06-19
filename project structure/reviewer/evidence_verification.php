@@ -607,6 +607,14 @@ body {
             <?php unset($_SESSION['flash_success']); ?>
         <?php endif; ?>
 
+        <?php if (!empty($_SESSION['flash_error'])): ?>
+            <div class="alert alert-danger rounded-4 border-0 shadow-sm">
+                <i class="bi bi-x-circle me-2"></i>
+                <?= e($_SESSION['flash_error']) ?>
+            </div>
+            <?php unset($_SESSION['flash_error']); ?>
+        <?php endif; ?>
+
         <div class="ev-metrics">
             <div class="ev-card ev-metric">
                 <div class="ev-metric-top">

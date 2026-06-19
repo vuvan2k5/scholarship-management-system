@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         // ── File upload helper ─────────────────────────────
         $uploadDir    = __DIR__ . '/../uploads/evidence/';
-        $uploadWebDir = 'scholarship-management-system/project structure/uploads/evidence/';
+        $uploadWebDir = 'uploads/evidence/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
         $allowedMime = [
@@ -147,11 +147,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 )->execute([$draftId, $studentId]);
                 $newAppId = $draftId;
             } else {
-                $pdo->prepare(
-                    "INSERT INTO applications (student_id,program_id,status,submitted_at)
-                     VALUES (?,?,'submitted',NOW())"
-                )->execute([$studentId, $programId]);
-                $newAppId = (int)$pdo->lastInsertId();
+                // Check if a draft exists for this student+program (unique constraint guard)
+                $existDraft = $pdo->prepare(
+                    "SELECT id FROM applications
+                     WHERE student_id=? AND program_id=? AND status='draft'"
+                );
+                $existDraft->execute([$studentId, $programId]);
+                $existDraftRow = $existDraft->fetch();
+
+                if ($existDraftRow) {
+                    // Promote existing draft → submitted instead of INSERT
+                    $pdo->prepare(
+                        "UPDATE applications
+                         SET status='submitted', submitted_at=NOW(), draft_notes=NULL
+                         WHERE id=? AND student_id=?"
+                    )->execute([$existDraftRow['id'], $studentId]);
+                    $newAppId = (int)$existDraftRow['id'];
+                } else {
+                    $pdo->prepare(
+                        "INSERT INTO applications (student_id,program_id,status,submitted_at)
+                         VALUES (?,?,'submitted',NOW())"
+                    )->execute([$studentId, $programId]);
+                    $newAppId = (int)$pdo->lastInsertId();
+                }
             }
 
             // ── Upload new evidence files ──────────────────
@@ -166,6 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $ext  = strtolower(pathinfo($orig, PATHINFO_EXTENSION));
                     $stor = 'ev_' . $newAppId . '_' . uniqid() . '.' . $ext;
                     if (move_uploaded_file($_FILES['evidence_files']['tmp_name'][$i], $uploadDir.$stor)) {
+<<<<<<< HEAD
                         $pdo->prepare(
                             "INSERT INTO application_evidence
                              (application_id,student_id,original_name,stored_name,file_path,file_size,file_type)
@@ -175,6 +194,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $uploadWebDir.$stor,
                             $_FILES['evidence_files']['size'][$i], $mime,
                         ]);
+=======
+                        $filePath = 'uploads/evidence/' . $stor;
+
+                        // Update (or insert) evidence status to pending after upload.
+                        // NOTE: Current schema has no evidence_type/title columns.
+                        // We emulate evidence_type by using file_type (MIME) as a discriminator for the update.
+                        $stmtUpdate = $pdo->prepare("
+                            UPDATE application_evidence
+                            SET file_path = ?, status = 'pending', file_type = ?
+                            WHERE application_id = ? AND file_type = ?
+                        ");
+                        $stmtUpdate->execute([$filePath, $mime, $newAppId, $mime]);
+
+                        // If no rows were updated (e.g., first upload of this MIME type), insert a new evidence row.
+                        $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM application_evidence WHERE application_id=? AND file_type=? AND stored_name=?");
+                        $stmtCount->execute([$newAppId, $mime, $stor]);
+                        $exists = (int)$stmtCount->fetchColumn() > 0;
+
+                        if (!$exists) {
+                            $pdo->prepare(
+                                "INSERT INTO application_evidence
+                                 (application_id,student_id,original_name,stored_name,file_path,file_size,file_type)
+                                 VALUES (?,?,?,?,?,?,?)"
+                            )->execute([
+                                $newAppId, $studentId, $orig, $stor,
+                                $filePath,
+                                $_FILES['evidence_files']['size'][$i], $mime,
+                            ]);
+                        }
+
+                        // Notify reviewer/admins that new evidence has been uploaded.
+                        $reviewers = $pdo->query("
+                            SELECT id FROM users
+                            WHERE role IN ('reviewer','admin')
+                        ")->fetchAll(PDO::FETCH_ASSOC);
+
+                        foreach ($reviewers as $reviewer) {
+                            $pdo->prepare(
+                                "INSERT INTO notifications
+                                 (user_id, title, message, type, is_read, created_at)
+                                 VALUES (?, ?, ?, ?, 0, NOW())"
+                            )->execute([
+                                (int)$reviewer['id'],
+                                'New evidence uploaded',
+                                'A student has uploaded new evidence for review.',
+                                'info',
+                            ]);
+                        }
+>>>>>>> 9e3372c (Yen student module updates)
                     }
                 }
             }
@@ -193,13 +261,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!$wdoc) continue;
                 $pdo->prepare(
                     "INSERT IGNORE INTO application_evidence
-                     (application_id,student_id,original_name,stored_name,file_path,file_size,file_type,wallet_doc_id)
-                     VALUES (?,?,?,?,?,?,?,?)"
+                     (application_id,student_id,original_name,stored_name,file_path,file_size,file_type)
+                     VALUES (?,?,?,?,?,?,?)"
                 )->execute([
                     $newAppId, $studentId,
                     $wdoc['original_name'], $wdoc['stored_name'],
                     $wdoc['file_path'], $wdoc['file_size'],
-                    $wdoc['file_type'], $wid,
+                    $wdoc['file_type'],
                 ]);
             }
 
@@ -221,6 +289,7 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/navbar.php';
 ?>
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 <div class="container py-4">
 
@@ -359,6 +428,8 @@ require_once __DIR__ . '/../includes/navbar.php';
     </div>
 
 =======
+=======
+>>>>>>> 9e3372c (Yen student module updates)
 <!-- Page Header -->
 <div class="page-header">
   <div class="page-header-left">
@@ -380,7 +451,10 @@ require_once __DIR__ . '/../includes/navbar.php';
       <i class="bi bi-grid-3x3-gap"></i> All Scholarships
     </a>
   </div>
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> 9e3372c (Yen student module updates)
 </div>
 
 <?php showFlash(); ?>

@@ -184,7 +184,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $ext  = strtolower(pathinfo($orig, PATHINFO_EXTENSION));
                     $stor = 'ev_' . $newAppId . '_' . uniqid() . '.' . $ext;
                     if (move_uploaded_file($_FILES['evidence_files']['tmp_name'][$i], $uploadDir.$stor)) {
-<<<<<<< HEAD
                         $pdo->prepare(
                             "INSERT INTO application_evidence
                              (application_id,student_id,original_name,stored_name,file_path,file_size,file_type)
@@ -194,7 +193,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $uploadWebDir.$stor,
                             $_FILES['evidence_files']['size'][$i], $mime,
                         ]);
-=======
                         $filePath = 'uploads/evidence/' . $stor;
 
                         // Update (or insert) evidence status to pending after upload.
@@ -242,7 +240,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'info',
                             ]);
                         }
->>>>>>> 9e3372c (Yen student module updates)
                     }
                 }
             }

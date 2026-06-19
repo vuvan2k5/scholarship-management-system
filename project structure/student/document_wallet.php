@@ -16,7 +16,7 @@ $studentId = currentUserId();
 $errors    = [];
 
 $uploadDir    = __DIR__ . '/../uploads/wallet/';
-$uploadWebDir = 'scholarship-management-system/project structure/uploads/wallet/';
+$uploadWebDir = 'uploads/wallet/';
 if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
 $allowedMime = [

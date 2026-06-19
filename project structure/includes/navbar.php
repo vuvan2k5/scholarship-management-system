@@ -353,6 +353,30 @@ if ($bodyRoleClass) {
         <span class="topbar-title"><?= isset($pageTitle) ? e($pageTitle) : 'Scholarship System' ?></span>
       </div>
       <div class="topbar-right" style="display:flex;align-items:center;gap:10px;">
+        <?php if ($role === 'admin' && function_exists('getDB') && function_exists('currentUserId')): ?>
+          <?php
+            $adminNotifCount = 0;
+            try {
+              $pdo_nb  = getDB();
+              $uid_nb  = currentUserId();
+              if ($uid_nb) {
+                $stmt_nb = $pdo_nb->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0");
+                $stmt_nb->execute([$uid_nb]);
+                $adminNotifCount = (int)$stmt_nb->fetchColumn();
+              }
+            } catch (Exception $e) {}
+          ?>
+          <a href="<?= BASE_URL ?>/admin/notifications/index.php"
+             title="Notifications"
+             style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);color:rgba(255,255,255,.75);text-decoration:none;transition:background .2s;"
+             onmouseover="this.style.background='rgba(255,255,255,.13)'"
+             onmouseout="this.style.background='rgba(255,255,255,.06)'">
+            <span style="font-size:18px;">🔔</span>
+            <?php if ($adminNotifCount > 0): ?>
+              <span style="position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;border-radius:10px;padding:1px 5px;font-size:10px;font-weight:700;line-height:1.4;min-width:16px;text-align:center;"><?= $adminNotifCount ?></span>
+            <?php endif; ?>
+          </a>
+        <?php endif; ?>
         <span class="badge badge-<?= e($role) ?>" style="font-size:11px;padding:5px 10px;">
           <?= strtoupper(e($role)) ?>
         </span>

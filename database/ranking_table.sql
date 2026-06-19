@@ -1,11 +1,18 @@
 USE scholarship_system;
 
 CREATE TABLE ranking_results (
-    id             INT(11) AUTO_INCREMENT PRIMARY KEY,
-    application_id INT(11) NOT NULL,
-    total_score    DECIMAL(5,2) NOT NULL,
-    `rank`         INT NOT NULL,
-    recommended    TINYINT(1) DEFAULT 0,
+    id               INT(11) AUTO_INCREMENT PRIMARY KEY,
+    application_id   INT(11) NOT NULL,
+    total_score      DECIMAL(5,2) NOT NULL,
+    `rank`           INT NOT NULL,
+    recommended      TINYINT(1) DEFAULT 0,
+    awarded          TINYINT(1) NOT NULL DEFAULT 0,
+    tie_break_reason VARCHAR(100) DEFAULT NULL,
+    published        TINYINT(1) NOT NULL DEFAULT 0,
+    published_at     DATETIME DEFAULT NULL,
+    published_by     INT(11) DEFAULT NULL,
+    generated_at     DATETIME DEFAULT NULL,
+    generated_by     INT(11) DEFAULT NULL,
     FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
 );
 

@@ -308,6 +308,12 @@ if ($bodyRoleClass) {
           </a>
         </li>
         <li class="nav-item">
+          <a href="<?= BASE_URL ?>/student/ask_admin.php"
+             class="nav-link <?= navPageActive('ask_admin.php') ?>">
+            <i class="bi bi-chat-dots"></i> Ask Admin
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="<?= BASE_URL ?>/student/profile.php"
              class="nav-link <?= navPageActive('profile.php') ?>">
             <i class="bi bi-person-gear"></i> My Profile

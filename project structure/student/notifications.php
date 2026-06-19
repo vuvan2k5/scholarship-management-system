@@ -3,12 +3,15 @@ $pageTitle = 'Notifications';
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/comm_helper.php';
 
 requireLogin();
 requireRole('student');
 
 $pdo    = getDB();
 $userId = currentUserId();
+
+ensureCommTables($pdo);
 
 // ── Mark single as read ────────────────────────────────────────
 if (isset($_GET['mark_read']) && is_numeric($_GET['mark_read'])) {
@@ -130,12 +133,21 @@ require_once __DIR__ . '/../includes/navbar.php';
       ];
       $tc = $typeConfig[$note['type']] ?? $typeConfig['info'];
       $isUnread = !$note['is_read'];
+      $threadRootId = resolveNotificationThreadRoot($pdo, $userId, $note);
       $markUrl  = '?mark_read=' . $note['id']
                 . '&type='        . urlencode($filterType)
                 . '&read_status=' . urlencode($filterRead);
+      if ($threadRootId) {
+          $noteUrl = 'message_view.php?id=' . $threadRootId
+                   . '&notif_id=' . (int)$note['id']
+                   . '&type=' . urlencode($filterType)
+                   . '&read_status=' . urlencode($filterRead);
+      } else {
+          $noteUrl = $isUnread ? $markUrl : '#';
+      }
+      $isClickable = $threadRootId || $isUnread;
     ?>
-    <!-- Whole row is a link: clicking anywhere marks it read -->
-    <a href="<?= $isUnread ? $markUrl : '#' ?>"
+    <a href="<?= $noteUrl ?>"
        style="display:flex;gap:14px;align-items:flex-start;
               background:<?= $isUnread ? '#fff' : '#f8fafc' ?>;
               border:1.5px solid <?= $isUnread ? $tc[1] . '40' : '#e2e8f0' ?>;
@@ -143,8 +155,8 @@ require_once __DIR__ . '/../includes/navbar.php';
               text-decoration:none;
               transition:all .2s;
               <?= $isUnread ? 'box-shadow:0 2px 8px rgba(0,0,0,.06);' : '' ?>
-              cursor:<?= $isUnread ? 'pointer' : 'default' ?>;"
-       <?= $isUnread ? '' : 'onclick="return false;"' ?>>
+              cursor:<?= $isClickable ? 'pointer' : 'default' ?>;"
+       <?= $isClickable ? '' : 'onclick="return false;"' ?>>
 
       <!-- Icon -->
       <div style="width:40px;height:40px;border-radius:10px;
@@ -189,7 +201,11 @@ require_once __DIR__ . '/../includes/navbar.php';
         <p style="font-size:13.5px;color:<?= $isUnread ? '#334155' : '#64748b' ?>;margin:0;line-height:1.6;">
           <?= e($note['message']) ?>
         </p>
-        <?php if ($isUnread): ?>
+        <?php if ($threadRootId): ?>
+        <div style="font-size:11.5px;color:#94a3b8;margin-top:6px;">
+          <i class="bi bi-chat-dots me-1"></i>Open conversation
+        </div>
+        <?php elseif ($isUnread): ?>
         <div style="font-size:11.5px;color:#94a3b8;margin-top:6px;">
           <i class="bi bi-cursor me-1"></i>Nhấn để đánh dấu đã đọc
         </div>

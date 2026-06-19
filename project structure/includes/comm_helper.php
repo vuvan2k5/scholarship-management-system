@@ -166,6 +166,96 @@ function broadcastInternalMessage(
 }
 
 /**
+ * Resolve a notifications row to the root message id of a conversation, if any.
+ * Returns null for system-only alerts (ranking, eligibility, etc.).
+ */
+function resolveNotificationThreadRoot(PDO $pdo, int $userId, array $notification): ?int {
+    $title     = trim((string)($notification['title'] ?? ''));
+    $createdAt = (string)($notification['created_at'] ?? '');
+    if ($title === '' || $createdAt === '') {
+        return null;
+    }
+
+    $stmt = $pdo->prepare("
+        SELECT id, parent_id
+        FROM messages
+        WHERE recipient_id = ?
+          AND subject = ?
+        ORDER BY ABS(TIMESTAMPDIFF(SECOND, created_at, ?))
+        LIMIT 1
+    ");
+    $stmt->execute([$userId, $title, $createdAt]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($row) {
+        return !empty($row['parent_id']) ? (int)$row['parent_id'] : (int)$row['id'];
+    }
+
+    $bStmt = $pdo->prepare("
+        SELECT m.id, m.parent_id
+        FROM message_recipients mr
+        JOIN messages m ON m.id = mr.message_id
+        WHERE mr.recipient_id = ?
+          AND m.subject = ?
+        ORDER BY ABS(TIMESTAMPDIFF(SECOND, m.created_at, ?))
+        LIMIT 1
+    ");
+    $bStmt->execute([$userId, $title, $createdAt]);
+    $bRow = $bStmt->fetch(PDO::FETCH_ASSOC);
+    if ($bRow) {
+        return !empty($bRow['parent_id']) ? (int)$bRow['parent_id'] : (int)$bRow['id'];
+    }
+
+    return null;
+}
+
+/**
+ * Load a thread root message if the user is a participant.
+ */
+function loadThreadRootForUser(PDO $pdo, int $msgId, int $userId): ?array {
+    $accessSql = "(m.sender_id = ? OR m.recipient_id = ?
+        OR EXISTS (
+            SELECT 1 FROM message_recipients mr
+            WHERE mr.message_id = m.id AND mr.recipient_id = ?
+        ))";
+
+    $stmt = $pdo->prepare("
+        SELECT m.*,
+               s.full_name AS sender_name, s.role AS sender_role, s.email AS sender_email,
+               r.full_name AS recipient_name, r.role AS recipient_role
+        FROM messages m
+        JOIN users s ON m.sender_id = s.id
+        LEFT JOIN users r ON m.recipient_id = r.id
+        WHERE m.id = ?
+          AND {$accessSql}
+    ");
+    $stmt->execute([$msgId, $userId, $userId, $userId]);
+    $msg = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$msg) {
+        return null;
+    }
+
+    if (!empty($msg['parent_id'])) {
+        $rootStmt = $pdo->prepare("
+            SELECT m.*,
+                   s.full_name AS sender_name, s.role AS sender_role, s.email AS sender_email,
+                   r.full_name AS recipient_name, r.role AS recipient_role
+            FROM messages m
+            JOIN users s ON m.sender_id = s.id
+            LEFT JOIN users r ON m.recipient_id = r.id
+            WHERE m.id = ?
+              AND {$accessSql}
+        ");
+        $rootStmt->execute([(int)$msg['parent_id'], $userId, $userId, $userId]);
+        $root = $rootStmt->fetch(PDO::FETCH_ASSOC);
+        if ($root) {
+            return $root;
+        }
+    }
+
+    return $msg;
+}
+
+/**
  * Mark a message as read for the given user.
  */
 function markMessageRead(PDO $pdo, int $msgId, int $userId): void {

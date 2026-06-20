@@ -97,7 +97,7 @@ require_once __DIR__ . '/../includes/header.php';
   flex-wrap: wrap;
 }
 .ma-page-title {
-  font-size: 24px;
+  font-size: 38px;
   font-weight: 800;
   color: #0f172a;
   margin: 0 0 4px;
@@ -354,6 +354,23 @@ require_once __DIR__ . '/../includes/header.php';
 }
 
 /* ── Draft action buttons ──────────────────────── */
+.ma-new-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:10px 20px;
+    background:#1d4ed8;
+    color:#fff !important;
+    border:none;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:600;
+}
+
+.ma-new-btn:hover{
+    background:#1e40af;
+    color:#fff !important;
+}
 .ma-edit-btn {
   display: inline-flex;
   align-items: center;

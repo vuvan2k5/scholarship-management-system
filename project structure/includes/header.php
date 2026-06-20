@@ -32,4 +32,4 @@
   <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/student.css">
   <?php endif; ?>
 </head>
-<body class="ABC-TEST-123">
+<body class="<?= function_exists('currentRole') ? 'role-' . currentRole() : '' ?>">

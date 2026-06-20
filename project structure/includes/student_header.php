@@ -108,13 +108,13 @@ if (count($words) >= 2) {
 }
 
 .stu-user-fullname {
-  color: #fff;
+  color: #1d054b;
   font-weight: 600;
   font-size: 14px;
 }
 
 .stu-user-label {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(17, 10, 65, 0.6);
   font-size: 11px;
   font-weight: 500;
 }
@@ -213,16 +213,20 @@ if (count($words) >= 2) {
 </style>
 
 <div class="stu-header">
+  <div class="stu-header-top">
 
   <!-- TOP BAR: brand + modern right user account section -->
-  <div class="stu-header-top">
-    <a href="dashboard.php" class="stu-brand">
-      <div class="stu-brand-icon">🎓</div>
+  <a href="dashboard.php" class="stu-brand">
+    <img src="<?= BASE_URL ?>/assets/images/logoupdate.png"
+         alt="Scholarship System"
+         class="stu-logo">
+</a>
+<!--
       <div>
         <div class="stu-brand-text">Scholarship</div>
         <div class="stu-brand-sub">Management System</div>
       </div>
-    </a>
+      -->
     
     <div class="stu-header-actions">
       <!-- Notification Bell -->
@@ -272,7 +276,7 @@ if (count($words) >= 2) {
       </div>
     </div>
   </div>
-
+</div>
   <!-- NAV BAR: bright blue — navigation links -->
   <nav class="stu-nav" aria-label="Student navigation">
     <?php

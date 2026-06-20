@@ -5,7 +5,7 @@
 // Evidence columns according to new criteria:
 //   gpa               – Academic score (float, 0–4)
 //   failed_subjects   – Number of re-exams / F grades (int)  ← prerequisite
-//   language_certificate – Language certificate (bool)  ← new condition
+//   has_language_cert – Language certificate (bool)  ← new condition
 //   activities        – List of extra-curricular activities (array, need >= 2)
 //   research_topics   – List of scientific research topics (array)
 //
@@ -23,7 +23,7 @@ $mock_students = [
         'major'               => 'Software Engineering',
         'gpa'                 => 3.6,
         'failed_subjects'     => 0,          // ✅ No F grades
-        'language_certificate'=> true,        // ✅ Has certificate
+        'has_language_cert'=> true,        // ✅ Has certificate
         'activities'          => [            // ✅ >= 2 activities
             'Volunteer Club',
             'Robotics Club',
@@ -42,7 +42,7 @@ $mock_students = [
         'major'               => 'Digital Marketing',
         'gpa'                 => 3.1,         // ❌ GPA < 3.2
         'failed_subjects'     => 0,
-        'language_certificate'=> false,       // ❌ No certificate
+        'has_language_cert'=> false,       // ❌ No certificate
         'activities'          => [
             'Football Team',
             'Student Council',
@@ -59,7 +59,7 @@ $mock_students = [
         'major'               => 'English Studies',
         'gpa'                 => 3.8,
         'failed_subjects'     => 0,
-        'language_certificate'=> true,
+        'has_language_cert'=> true,
         'activities'          => [
             'Debate Club',
             'Volunteer Club',
@@ -79,7 +79,7 @@ $mock_students = [
         'major'               => 'Network Engineering',
         'gpa'                 => 2.9,         // ❌ GPA < 3.2
         'failed_subjects'     => 1,           // ❌ Has F grade
-        'language_certificate'=> true,
+        'has_language_cert'=> true,
         'activities'          => [
             'Music Club',
             'Volunteer Club',
@@ -96,7 +96,7 @@ $mock_students = [
         'major'               => 'Finance',
         'gpa'                 => 3.4,
         'failed_subjects'     => 0,
-        'language_certificate'=> false,       // ❌ No certificate
+        'has_language_cert'=> false,       // ❌ No certificate
         'activities'          => [
             'Student Council',
             'Photography Club',
@@ -113,7 +113,7 @@ $mock_students = [
         'major'               => 'Cybersecurity',
         'gpa'                 => 3.2,         // ✅ GPA = 3.2 (exactly at threshold)
         'failed_subjects'     => 0,
-        'language_certificate'=> true,
+        'has_language_cert'=> true,
         'activities'          => [
             'Volunteer Club',
             'Coding Club',
@@ -132,7 +132,7 @@ $mock_students = [
         'major'               => 'Japanese Studies',
         'gpa'                 => 3.3,
         'failed_subjects'     => 0,
-        'language_certificate'=> true,
+        'has_language_cert'=> true,
         'activities'          => [
             'Art Club',               // ❌ Only 1 activity (< 2)
         ],
@@ -148,7 +148,7 @@ $mock_students = [
         'major'               => 'Data Science',
         'gpa'                 => 3.9,
         'failed_subjects'     => 0,
-        'language_certificate'=> true,
+        'has_language_cert'=> true,
         'activities'          => [
             'Research Group',
             'Math Society',
@@ -169,7 +169,7 @@ $mock_students = [
         'major'               => 'International Business',
         'gpa'                 => 3.3,
         'failed_subjects'     => 0,
-        'language_certificate'=> true,
+        'has_language_cert'=> true,
         'activities'          => [
             'Debate Club',
             'Volunteer Club',
@@ -186,7 +186,7 @@ $mock_students = [
         'major'               => 'Robotics',
         'gpa'                 => 3.5,
         'failed_subjects'     => 0,
-        'language_certificate'=> true,
+        'has_language_cert'=> true,
         'activities'          => [
             'Coding Club',
             'Robotics Club',

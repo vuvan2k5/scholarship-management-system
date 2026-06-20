@@ -227,7 +227,7 @@ INSERT INTO eligibility_rules (program_id, rule_type, operator, value) VALUES
 
 -- Program 5: International Talent Scholarship
 (5, 'gpa', '>=', '3.5'),
-(5, 'language_certificate', '=', '1'),
+(5, 'has_language_cert', '=', '1'),
 (5, 'failed_subjects', '=', '0');
 
 -- =====================================

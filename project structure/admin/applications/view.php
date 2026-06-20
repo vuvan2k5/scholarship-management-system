@@ -332,7 +332,7 @@ $wfSteps = ['Submitted','Eligibility Checked','Under Review','Verified','Ranked'
         </div>
         <table class="table detail-table mb-0" style="font-size:13px;">
           <tr><th>Family Income</th><td><?= $profile['family_income'] !== null ? number_format((float)$profile['family_income'],0,',','.').' đ/month' : '—' ?></td></tr>
-          <tr><th>Language Certificate</th><td><?= $profile['language_certificate'] ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-inactive">No</span>' ?></td></tr>
+          <tr><th>Language Certificate</th><td><?= $profile['has_language_cert'] ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-inactive">No</span>' ?></td></tr>
           <tr><th>Disadvantaged</th><td><?= $profile['is_disadvantaged'] ? '<span class="badge badge-warning">Yes</span>' : '<span class="badge badge-inactive">No</span>' ?></td></tr>
         </table>
       </div>

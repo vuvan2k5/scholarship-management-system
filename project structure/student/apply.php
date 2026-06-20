@@ -50,13 +50,6 @@ $stmtUser = $pdo->prepare("SELECT * FROM users WHERE id = ?");
 $stmtUser->execute([$studentId]);
 $user = $stmtUser->fetch();
 
-// ── Document Wallet ────────────────────────────────────────
-$walletDocs = $pdo->prepare(
-    "SELECT * FROM student_documents WHERE student_id=? ORDER BY uploaded_at DESC"
-);
-$walletDocs->execute([$studentId]);
-$walletDocs = $walletDocs->fetchAll();
-
 // ── Selected program for sidebar ───────────────────────────
 $selId = $draftData ? (int)$draftData['program_id'] : (int)($_GET['program_id'] ?? 0);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -83,6 +76,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'submit' && empty($errors) && !$profile) {
         $errors[] = 'Please complete your academic profile before submitting an application.';
+    }
+
+    // ── Declaration checkbox (server-side guard) ──────────────
+    if ($action === 'submit' && empty($errors) && empty($_POST['declaration'])) {
+        $errors[] = 'You must confirm the declaration before submitting.';
+    }
+
+    // ── Evidence validation (server-side guard) ────────────
+    if ($action === 'submit' && empty($errors)) {
+        $hasNewFiles = !empty($_FILES['evidence_files']['name'][0]);
+        $hasExisting = false;
+        if (!$hasNewFiles && $draftId > 0) {
+            // Check DB for evidence already on this draft
+            $evChk = $pdo->prepare(
+                "SELECT COUNT(*) FROM application_evidence WHERE application_id=? AND student_id=?"
+            );
+            $evChk->execute([$draftId, $studentId]);
+            $hasExisting = ((int)$evChk->fetchColumn()) > 0;
+        }
+        if (!$hasNewFiles && !$hasExisting) {
+            $errors[] = 'At least one supporting document is required before submitting your application.';
+        }
     }
 
     if (empty($errors)) {
@@ -193,34 +208,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $uploadWebDir.$stor,
                             $_FILES['evidence_files']['size'][$i], $mime,
                         ]);
-                        $filePath = 'uploads/evidence/' . $stor;
-
-                        // Update (or insert) evidence status to pending after upload.
-                        // NOTE: Current schema has no evidence_type/title columns.
-                        // We emulate evidence_type by using file_type (MIME) as a discriminator for the update.
-                        $stmtUpdate = $pdo->prepare("
-                            UPDATE application_evidence
-                            SET file_path = ?, status = 'pending', file_type = ?
-                            WHERE application_id = ? AND file_type = ?
-                        ");
-                        $stmtUpdate->execute([$filePath, $mime, $newAppId, $mime]);
-
-                        // If no rows were updated (e.g., first upload of this MIME type), insert a new evidence row.
-                        $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM application_evidence WHERE application_id=? AND file_type=? AND stored_name=?");
-                        $stmtCount->execute([$newAppId, $mime, $stor]);
-                        $exists = (int)$stmtCount->fetchColumn() > 0;
-
-                        if (!$exists) {
-                            $pdo->prepare(
-                                "INSERT INTO application_evidence
-                                 (application_id,student_id,original_name,stored_name,file_path,file_size,file_type)
-                                 VALUES (?,?,?,?,?,?,?)"
-                            )->execute([
-                                $newAppId, $studentId, $orig, $stor,
-                                $filePath,
-                                $_FILES['evidence_files']['size'][$i], $mime,
-                            ]);
-                        }
 
                         // Notify reviewer/admins that new evidence has been uploaded.
                         $reviewers = $pdo->query("
@@ -244,30 +231,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            // ── Attach wallet documents ────────────────────
-            $walletIds = $_POST['wallet_doc_ids'] ?? [];
-            foreach ($walletIds as $wid) {
-                $wid = (int)$wid;
-                if ($wid <= 0) continue;
-                // Verify ownership
-                $wdoc = $pdo->prepare(
-                    "SELECT * FROM student_documents WHERE id=? AND student_id=?"
-                );
-                $wdoc->execute([$wid, $studentId]);
-                $wdoc = $wdoc->fetch();
-                if (!$wdoc) continue;
-                $pdo->prepare(
-                    "INSERT IGNORE INTO application_evidence
-                     (application_id,student_id,original_name,stored_name,file_path,file_size,file_type)
-                     VALUES (?,?,?,?,?,?,?)"
-                )->execute([
-                    $newAppId, $studentId,
-                    $wdoc['original_name'], $wdoc['stored_name'],
-                    $wdoc['file_path'], $wdoc['file_size'],
-                    $wdoc['file_type'],
-                ]);
-            }
-
             checkEligibility($pdo, $newAppId);
 
             $pdo->prepare(
@@ -283,156 +246,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 require_once __DIR__ . '/../includes/header.php';
-require_once __DIR__ . '/../includes/navbar.php';
+//require_once __DIR__ . '/../includes/navbar.php';
 ?>
+<?php require_once __DIR__ . '/../includes/student_header.php'; ?>
+<div class="student-page">
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< Updated upstream
->>>>>>> origin/yen-student-role
-<div class="container py-4">
-
-    <!-- PAGE HEADER -->
-
-    <div class="mb-4">
-
-        <h1 class="page-title">
-
-            Apply Scholarship
-
-        </h1>
-
-        <p class="page-subtitle">
-
-            Submit your scholarship application
-
-        </p>
-
-    </div>
-
-    <!-- ALERTS -->
-
-    <?php if ($error): ?>
-
-        <div class="alert alert-danger alert-dismissible fade show">
-
-            <?= e($error) ?>
-
-            <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="alert"
-            ></button>
-
-        </div>
-
-    <?php endif; ?>
-
-    <?php if ($success): ?>
-
-        <div class="alert alert-success alert-dismissible fade show">
-
-            <?= e($success) ?>
-
-            <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="alert"
-            ></button>
-
-        </div>
-
-    <?php endif; ?>
-
-    <!-- APPLICATION FORM -->
-
-    <div class="row justify-content-center">
-
-        <div class="col-lg-7">
-
-            <div class="card">
-
-                <div class="card-body">
-
-                    <form method="POST">
-
-                        <div class="mb-4">
-
-                            <label class="form-label">
-
-                                Scholarship Program
-
-                            </label>
-
-                            <select
-                                name="program_id"
-                                class="form-select"
-                                required
-                            >
-
-                                <option value="">
-
-                                    Select Program
-
-                                </option>
-
-                                <?php foreach ($programs as $program): ?>
-                                    <?php
-                                        $isSelected = false;
-                                        if (isset($_POST['program_id']) && intval($_POST['program_id']) === intval($program['id'])) {
-                                            $isSelected = true;
-                                        } elseif (isset($_GET['program_id']) && intval($_GET['program_id']) === intval($program['id'])) {
-                                            $isSelected = true;
-                                        }
-                                    ?>
-                                    <option value="<?= $program['id'] ?>" <?= $isSelected ? 'selected' : '' ?>>
-                                        <?= e($program['name']) ?>
-                                    </option>
-                                <?php endforeach; ?>
-
-                            </select>
-
-                        </div>
-
-                        <div class="d-flex gap-2">
-
-                            <button
-                                type="submit"
-                                class="btn btn-primary"
-                            >
-
-                                Submit Application
-
-                            </button>
-
-                            <a
-                                href="dashboard.php"
-                                class="btn btn-secondary"
-                            >
-
-                                Back
-
-                            </a>
-
-                        </div>
-
-                    </form>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-<<<<<<< HEAD
-=======
-=======
-=======
->>>>>>> 9e3372c (Yen student module updates)
->>>>>>> origin/yen-student-role
 <!-- Page Header -->
 <div class="page-header">
   <div class="page-header-left">
@@ -447,20 +265,11 @@ require_once __DIR__ . '/../includes/navbar.php';
     </p>
   </div>
   <div class="d-flex gap-2">
-    <a href="document_wallet.php" class="btn btn-secondary">
-      <i class="bi bi-folder2-open"></i> Document Wallet
-    </a>
     <a href="scholarships.php" class="btn btn-secondary">
       <i class="bi bi-grid-3x3-gap"></i> All Scholarships
     </a>
   </div>
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> Stashed changes
-=======
->>>>>>> 9e3372c (Yen student module updates)
->>>>>>> origin/yen-student-role
+
 </div>
 
 <?php showFlash(); ?>
@@ -508,7 +317,7 @@ $profileJson = $profile ? json_encode([
     'activities_count'     => (int)$profile['activities_count'],
     'failed_subjects'      => (int)$profile['failed_subjects'],
     'research_count'       => (int)($profile['research_count'] ?? 0),
-    'language_certificate' => (int)($profile['language_certificate'] ?? 0),
+    'has_language_cert' => (int)($profile['has_language_cert'] ?? 0),
     'family_income'        => (float)($profile['family_income'] ?? 0),
 ], JSON_UNESCAPED_UNICODE) : 'null';
 ?>
@@ -629,22 +438,7 @@ $profileJson = $profile ? json_encode([
         Attach documents (transcripts, certificates, awards, etc.) for the review committee.
       </p>
 
-      <!-- Tab switcher -->
-      <div style="display:flex;gap:8px;margin-bottom:16px;">
-        <button type="button" class="doc-tab-btn active" onclick="switchDocTab('upload')" id="tabUpload">
-          <i class="bi bi-cloud-upload me-1"></i> Upload new file
-        </button>
-        <button type="button" class="doc-tab-btn" onclick="switchDocTab('wallet')" id="tabWallet">
-          <i class="bi bi-folder2-open me-1"></i> My Document Wallet
-          <?php if (!empty($walletDocs)): ?>
-            <span style="background:#1D4ED8;color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;margin-left:4px;">
-              <?= count($walletDocs) ?>
-            </span>
-          <?php endif; ?>
-        </button>
-      </div>
-
-      <!-- Tab: Upload mới -->
+      <!-- Upload panel -->
       <div id="tabPanelUpload">
         <div id="dropZone" class="drop-zone"
              onclick="document.getElementById('evidenceInput').click()"
@@ -661,57 +455,13 @@ $profileJson = $profile ? json_encode([
                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.webp"
                style="display:none;" onchange="previewFiles(this.files)">
         <div id="filePreviewList" style="margin-top:12px;"></div>
-      </div>
-
-      <!-- Tab: Kho tài liệu -->
-      <div id="tabPanelWallet" style="display:none;">
-        <?php if (empty($walletDocs)): ?>
-          <div style="text-align:center;padding:30px;color:#94a3b8;font-size:13px;">
-            <i class="bi bi-folder-x" style="font-size:32px;display:block;margin-bottom:10px;"></i>
-            Document wallet is empty.
-            <a href="document_wallet.php" class="d-block mt-2 btn btn-sm btn-outline-primary">
-              <i class="bi bi-plus-lg"></i> Upload documents
-            </a>
-          </div>
-        <?php else: ?>
-          <div style="font-size:12px;color:#64748b;margin-bottom:10px;">
-            <i class="bi bi-info-circle me-1"></i>
-            Tick chọn tài liệu bạn muốn đính kèm vào đơn này.
-          </div>
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <?php foreach ($walletDocs as $doc):
-              $docIcons = [
-                'application/pdf' => '📄',
-                'image/jpeg'=>'🖼️','image/png'=>'🖼️','image/webp'=>'🖼️',
-                'application/msword'=>'📝',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'=>'📝',
-              ];
-              $icon = $docIcons[$doc['file_type']] ?? '📎';
-            ?>
-            <label class="wallet-doc-item">
-              <input type="checkbox" name="wallet_doc_ids[]"
-                     value="<?= $doc['id'] ?>" class="wallet-checkbox">
-              <span style="font-size:20px;"><?= $icon ?></span>
-              <div style="flex:1;min-width:0;">
-                <div style="font-size:13px;font-weight:600;color:#0f172a;">
-                  <?= e($doc['display_name']) ?>
-                </div>
-                <div style="font-size:11px;color:#94a3b8;">
-                  <?= e($doc['document_type']) ?> ·
-                  <?= round($doc['file_size']/1024,1) ?> KB ·
-                  <?= date('d/m/Y', strtotime($doc['uploaded_at'])) ?>
-                </div>
-              </div>
-              <span class="wallet-check-icon bi bi-check-circle-fill"></span>
-            </label>
-            <?php endforeach; ?>
-          </div>
-          <div class="mt-3">
-            <a href="document_wallet.php" style="font-size:12px;color:#1D4ED8;">
-              <i class="bi bi-plus-circle me-1"></i> Tải thêm tài liệu vào kho
-            </a>
-          </div>
-        <?php endif; ?>
+        <!-- Evidence required warning -->
+        <div id="evidenceWarning"
+             class="alert alert-warning d-flex align-items-center gap-2 mt-3"
+             style="font-size:13px;display:none !important;">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          Please upload at least one supporting document.
+        </div>
       </div>
 
       <div style="font-size:11.5px;color:#94a3b8;margin-top:12px;">
@@ -721,45 +471,42 @@ $profileJson = $profile ? json_encode([
     </div>
   </div>
 
-  <!-- ── Step 4: Ghi chú nháp & Nộp đơn ──────────────────── -->
+  <!-- ── Step 4: Declaration & Submit ──────────────────────── -->
   <div class="card mb-4">
     <div class="card-body">
       <h5 class="card-title mb-3">
-        <span class="step-badge">4</span> Xác nhận & Nộp đơn
+        <span class="step-badge">4</span> Confirmation &amp; Submission
       </h5>
 
-      <!-- Draft notes -->
-      <div class="mb-3">
-        <label class="form-label">
-          <i class="bi bi-sticky me-1 text-warning"></i>
-          Ghi chú cá nhân (chỉ bạn thấy)
-        </label>
-        <textarea name="draft_notes" class="form-control" rows="2"
-                  placeholder="Ví dụ: Cần bổ sung bảng điểm học kỳ 2..."
-                  style="font-size:13px;"><?= e($draftData['draft_notes'] ?? '') ?></textarea>
-      </div>
-
       <div class="alert alert-info mb-4" style="font-size:13px;">
-        <i class="bi bi-info-circle me-2"></i>
-        Khi nhấn <strong>Nộp đơn</strong>, hệ thống sẽ tự động kiểm tra điều kiện dựa trên hồ sơ học thuật của bạn.
+        <i class="bi bi-info-circle-fill me-2"></i>
+        After clicking <strong>Submit Application</strong>, the system will automatically
+        check your eligibility based on your academic profile.
       </div>
 
-      <div class="d-flex gap-3 flex-wrap">
+      <!-- Declaration checkbox -->
+      <div class="mb-4 p-3 border rounded-3" style="background:#f8faff;border-color:#c7d9f8 !important;">
+        <div class="form-check align-items-start d-flex gap-2" style="margin:0;">
+          <input class="form-check-input flex-shrink-0" type="checkbox"
+                 name="declaration" id="declarationCheck" value="1"
+                 style="width:18px;height:18px;margin-top:2px;cursor:pointer;"
+                 onchange="handleDeclaration(this)">
+          <label class="form-check-label" for="declarationCheck"
+                 style="font-size:13.5px;color:#1e3a5f;line-height:1.6;cursor:pointer;">
+            <strong>I confirm</strong> that all information and evidence provided in this
+            application are accurate and authentic. I understand that providing false
+            information may lead to application rejection or scholarship withdrawal.
+          </label>
+        </div>
+      </div>
+
+      <div class="d-flex gap-3">
         <button type="button" id="submitBtn"
                 class="btn btn-primary btn-lg"
                 onclick="doSubmit()"
-                <?= !$profile ? 'disabled' : '' ?>>
-          <i class="bi bi-send-fill"></i> Nộp đơn chính thức
+                disabled>
+          <i class="bi bi-send-fill me-1"></i> Submit Application
         </button>
-        <button type="button" id="draftBtn"
-                class="btn btn-lg"
-                style="background:#fffbeb;color:#92400e;border:1.5px solid #fde68a;"
-                onclick="doDraft()">
-          <i class="bi bi-cloud-arrow-up"></i> Lưu nháp
-        </button>
-        <a href="dashboard.php" class="btn btn-secondary btn-lg">
-          <i class="bi bi-arrow-left"></i> Quay lại
-        </a>
       </div>
     </div>
   </div>
@@ -776,8 +523,8 @@ $profileJson = $profile ? json_encode([
       <div class="card-body">
         <div class="empty-state" style="padding:40px 20px;">
           <div class="empty-state-icon"><i class="bi bi-award"></i></div>
-          <div class="empty-state-title">Chọn chương trình</div>
-          <div class="empty-state-text">Chọn một chương trình học bổng để xem chi tiết yêu cầu và tiêu chí chấm điểm.</div>
+          <div class="empty-state-title">Select a program</div>
+          <div class="empty-state-text">Select a scholarship program to view detailed requirements and scoring criteria.</div>
         </div>
       </div>
     </div>
@@ -810,33 +557,6 @@ $profileJson = $profile ? json_encode([
 }
 .drop-zone:hover { border-color:#1D4ED8;background:#eff6ff; }
 
-.doc-tab-btn {
-  padding:8px 16px;border-radius:8px;border:1.5px solid #dbeafe;
-  background:#f7f9ff;color:#3b5fa0;font-size:13px;font-weight:600;
-  cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;
-}
-.doc-tab-btn.active {
-  background:#1D4ED8;color:#fff;border-color:#1D4ED8;
-  box-shadow:0 2px 8px rgba(29,78,216,.3);
-}
-
-.wallet-doc-item {
-  display:flex;align-items:center;gap:12px;
-  padding:12px 16px;border-radius:10px;cursor:pointer;
-  border:1.5px solid #e2e8f0;background:#fff;transition:all .18s;
-}
-.wallet-doc-item:hover { border-color:#1D4ED8;background:#eff6ff; }
-.wallet-doc-item:has(.wallet-checkbox:checked) {
-  border-color:#1D4ED8;background:#eff6ff;
-}
-.wallet-check-icon {
-  color:#94a3b8;font-size:18px;flex-shrink:0;transition:color .18s;
-}
-.wallet-doc-item:has(.wallet-checkbox:checked) .wallet-check-icon {
-  color:#1D4ED8;
-}
-.wallet-checkbox { display:none; }
-
 /* Eligibility warning */
 .eligibility-warning {
   border-radius:10px;padding:14px 16px;margin-top:12px;
@@ -850,6 +570,11 @@ $profileJson = $profile ? json_encode([
   border-left:4px solid #16a34a;background:#f0fdf4;
 }
 .eligibility-ok .warn-row { color:#166534; }
+.student-page{
+    max-width:1500px;
+    margin:0 auto;
+    padding:32px;
+}
 </style>
 
 <script>
@@ -873,7 +598,7 @@ function checkEligibilityFrontend(rules) {
         activities_count: 'Hoạt động ngoại khóa',
         failed_subjects: 'Môn học trượt/thi lại',
         research_projects: 'Đề tài NCKH', research_count: 'Đề tài NCKH',
-        language_certificate: 'Chứng chỉ ngoại ngữ',
+        has_language_cert: 'Chứng chỉ ngoại ngữ',
         family_income: 'Thu nhập gia đình (VNĐ/tháng)',
     };
     const profileMap = {
@@ -883,7 +608,7 @@ function checkEligibilityFrontend(rules) {
         failed_subjects: STUDENT_PROFILE.failed_subjects,
         research_projects: STUDENT_PROFILE.research_count,
         research_count: STUDENT_PROFILE.research_count,
-        language_certificate: STUDENT_PROFILE.language_certificate,
+        has_language_cert: STUDENT_PROFILE.has_language_cert,
         family_income: STUDENT_PROFILE.family_income,
     };
 
@@ -987,7 +712,7 @@ function renderSidebar(data) {
         failed_subjects:['Không có môn trượt','bi-x-circle','#dc2626'],
         research_projects:['Đề tài NCKH','bi-journal-text','#0891b2'],
         research_count:['Đề tài NCKH','bi-journal-text','#0891b2'],
-        language_certificate:['Chứng chỉ ngoại ngữ','bi-translate','#16a34a'],
+        has_language_cert:['Chứng chỉ ngoại ngữ','bi-translate','#16a34a'],
         family_income:['Thu nhập gia đình','bi-house-heart','#d97706'],
     };
     let rulesHtml = '';
@@ -1043,13 +768,42 @@ function escHtml(str) {
     d.textContent = str; return d.innerHTML;
 }
 
-// ─── Form action triggers ─────────────────────────────────
-function doSubmit() {
-    document.getElementById('formAction').value = 'submit';
-    document.getElementById('applyForm').requestSubmit();
+// ─── Central submit-button state ────────────────────────────
+// Both conditions must be true: declaration checked + ≥1 file selected
+const existingEvidenceCount = <?= $draftId > 0
+    ? (int)$pdo->query("SELECT COUNT(*) FROM application_evidence WHERE application_id=$draftId AND student_id=$studentId")->fetchColumn()
+    : 0 ?>;
+
+function updateSubmitBtn() {
+    const btn       = document.getElementById('submitBtn');
+    const declared  = document.getElementById('declarationCheck')?.checked ?? false;
+    const hasFiles  = selectedFiles.length > 0 || existingEvidenceCount > 0;
+    const warning   = document.getElementById('evidenceWarning');
+
+    if (btn) btn.disabled = !(declared && hasFiles);
+
+    // Show/hide warning only when user has interacted (declaration checked but no file)
+    if (warning) {
+        warning.style.display = (declared && !hasFiles) ? 'flex' : 'none';
+    }
 }
-function doDraft() {
-    document.getElementById('formAction').value = 'draft';
+
+// ─── Declaration checkbox handler ────────────────────────
+function handleDeclaration(checkbox) {
+    updateSubmitBtn();
+}
+
+// ─── Form submit trigger ──────────────────────────────────
+function doSubmit() {
+    if (!document.getElementById('declarationCheck')?.checked) {
+        alert('Please confirm the declaration before submitting.');
+        return;
+    }
+    if (selectedFiles.length === 0 && existingEvidenceCount === 0) {
+        alert('Please upload at least one supporting document.');
+        return;
+    }
+    document.getElementById('formAction').value = 'submit';
     document.getElementById('applyForm').requestSubmit();
 }
 
@@ -1094,7 +848,7 @@ function removeFile(i) {
 }
 function renderFileList() {
     const list = document.getElementById('filePreviewList');
-    if (!selectedFiles.length) { list.innerHTML=''; return; }
+    if (!selectedFiles.length) { list.innerHTML=''; updateSubmitBtn(); return; }
     const icons = {'application/pdf':'📄','image/jpeg':'🖼️','image/png':'🖼️',
         'image/gif':'🖼️','image/webp':'🖼️','application/msword':'📝',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document':'📝'};
@@ -1110,90 +864,33 @@ function renderFileList() {
             <button type="button" onclick="removeFile(${i})"
               style="background:none;border:none;color:#dc2626;font-size:18px;cursor:pointer;padding:0 4px;">×</button>
         </div>`).join('')}</div>`;
+    updateSubmitBtn();
 }
 
 // ─── On page load ─────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     const sel = document.getElementById('programSelect');
-    const submitBtn = document.getElementById('submitBtn');
-    const noProfile = <?= $profile ? 'false' : 'true' ?>;
-    if (submitBtn && !noProfile) submitBtn.disabled = true; // re-enabled after program load
 
     if (sel && sel.value) loadProgramDetails(sel.value);
 
-    // Validate before form submit
+    // Validate program selection, declaration, and evidence before submit
     document.getElementById('applyForm')?.addEventListener('submit', function(e) {
         if (!document.getElementById('programSelect')?.value) {
             e.preventDefault();
-            alert('Vui lòng chọn chương trình học bổng!');
+            alert('Please select a scholarship program.');
+            return;
+        }
+        if (!document.getElementById('declarationCheck')?.checked) {
+            e.preventDefault();
+            alert('Please confirm the declaration before submitting.');
+            return;
+        }
+        if (selectedFiles.length === 0 && existingEvidenceCount === 0) {
+            e.preventDefault();
+            alert('Please upload at least one supporting document.');
         }
     });
-
-    // ── Auto-save draft every 45 seconds ──────────────────
-    let currentDraftId = <?= $draftId ?: 'null' ?>;
-    let autoSaveTimer  = null;
-
-    function autoSaveDraft() {
-        const progId = document.getElementById('programSelect')?.value;
-        if (!progId) return;
-        const notes = document.querySelector('textarea[name="draft_notes"]')?.value || '';
-
-        fetch('api/save_draft.php', {
-            method : 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body   : JSON.stringify({
-                program_id : parseInt(progId),
-                draft_id   : currentDraftId,
-                draft_notes: notes,
-            }),
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                currentDraftId = data.draft_id;
-                // Update hidden field if present
-                const hiddenDraft = document.querySelector('input[name="draft_id"]');
-                if (hiddenDraft) hiddenDraft.value = currentDraftId;
-                else {
-                    const hf = document.createElement('input');
-                    hf.type = 'hidden'; hf.name = 'draft_id';
-                    hf.value = currentDraftId;
-                    document.getElementById('applyForm')?.appendChild(hf);
-                }
-                showAutoSaveToast(data.saved_at);
-            }
-        })
-        .catch(() => {}); // silent fail – don't disturb the user
-    }
-
-    function showAutoSaveToast(time) {
-        let toast = document.getElementById('autoSaveToast');
-        if (!toast) {
-            toast = document.createElement('div');
-            toast.id = 'autoSaveToast';
-            toast.style.cssText =
-                'position:fixed;bottom:20px;right:20px;z-index:9999;' +
-                'background:#0f172a;color:#fff;padding:10px 18px;border-radius:10px;' +
-                'font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;' +
-                'box-shadow:0 4px 16px rgba(0,0,0,.25);display:flex;align-items:center;gap:8px;';
-            document.body.appendChild(toast);
-        }
-        toast.innerHTML = `<i class="bi bi-cloud-check" style="color:#4ade80;"></i> Đã lưu nháp tự động lúc ${time}`;
-        toast.style.opacity = '1';
-        clearTimeout(window._toastTimer);
-        window._toastTimer = setTimeout(() => toast.style.opacity = '0', 3000);
-    }
-
-    // Trigger auto-save when program changes or notes blur
-    document.getElementById('programSelect')?.addEventListener('change', () => {
-        clearTimeout(autoSaveTimer);
-        autoSaveTimer = setTimeout(autoSaveDraft, 1500);
-    });
-    document.querySelector('textarea[name="draft_notes"]')?.addEventListener('blur', autoSaveDraft);
-
-    // Periodic auto-save every 45s
-    setInterval(autoSaveDraft, 45000);
 });
 </script>
-
+</div>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

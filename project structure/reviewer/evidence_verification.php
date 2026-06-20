@@ -693,7 +693,7 @@ body {
 
                 <select id="typeFilter" class="ev-control">
                     <option value="">All Evidence Types</option>
-                    <option value="language_certificate">Language Certificate</option>
+                    <option value="has_language_cert">Language Certificate</option>
                     <option value="activities">Activities Proof</option>
                     <option value="failed_subjects">Failed Subjects</option>
                 </select>

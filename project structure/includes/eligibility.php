@@ -20,7 +20,7 @@ function eligibilityRuleLabel(string $type): string {
         'activity'             => 'Activity Requirement',
         'income'               => 'Income Requirement',
         'family_income'        => 'Income Requirement',
-        'language_certificate' => 'Language Certificate',
+        'has_language_cert' => 'Language Certificate',
         'language_cert'        => 'Language Certificate',
         'research'             => 'Research Experience',
         'research_count'       => 'Research Experience',
@@ -112,8 +112,8 @@ function checkEligibility(PDO $pdo, int $applicationId, ?int $checkedByUserId = 
             } elseif (in_array($type, ['research_projects','research_count','research'])) {
                 $actualValue = (int)($profile['research_count'] ?? 0);
                 $threshold   = (int)$threshold;
-            } elseif (in_array($type, ['language_certificate','language_cert'])) {
-                $actualValue = (int)($profile['language_certificate'] ?? 0);
+            } elseif (in_array($type, ['has_language_cert','language_cert'])) {
+                $actualValue = (int)($profile['has_language_cert'] ?? 0);
                 $threshold   = (int)$threshold;
             } elseif (in_array($type, ['income','family_income'])) {
                 $actualValue = (float)($profile['family_income'] ?? 0);
@@ -162,7 +162,7 @@ function checkEligibility(PDO $pdo, int $applicationId, ?int $checkedByUserId = 
                 $failReasonText = match(true) {
                     $type === 'gpa'
                         => "GPA Requirement Not Met: student GPA is {$actualValue}, required {$op} {$threshold}.",
-                    in_array($type, ['language_certificate','language_cert'])
+                    in_array($type, ['has_language_cert','language_cert'])
                         => "Missing Language Certificate: student has no valid language certificate on record.",
                     in_array($type, ['income','family_income'])
                         => "Income Threshold Exceeded: family income is " . number_format((float)$actualValue, 0, ',', '.') . "đ, limit is {$op} " . number_format((float)$threshold, 0, ',', '.') . "đ.",

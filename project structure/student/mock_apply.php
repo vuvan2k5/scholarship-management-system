@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'gpa' => (float)post('gpa', $current['gpa']),
         'activities' => array_filter(array_map('trim', explode("\n", post('activities', implode("\n", $current['activities']))))),
         'research_topics' => array_filter(array_map('trim', explode("\n", post('research_topics', implode("\n", $current['research_topics']))))),
-        'language_certificate' => isset($_POST['language_certificate']) ? 1 : 0,
+        'has_language_cert' => isset($_POST['has_language_cert']) ? 1 : 0,
         'files' => [],
         'saved_at' => date('Y-m-d H:i:s'),
     ];
@@ -101,8 +101,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 require_once __DIR__ . '/../includes/header.php';
-require_once __DIR__ . '/../includes/navbar.php';
+//require_once __DIR__ . '/../includes/navbar.php';
 ?>
+<?php require_once __DIR__ . '/../includes/student_header.php'; ?>
 
 <div class="container py-4">
   <?php showFlash(); if ($message): ?>
@@ -195,7 +196,7 @@ require_once __DIR__ . '/../includes/navbar.php';
             <dt class="col-5">GPA</dt><dd class="col-7"><?= e($current['gpa']) ?></dd>
             <dt class="col-5">Failed Subjects</dt><dd class="col-7"><?= e($current['failed_subjects']) ?></dd>
             <dt class="col-5">Activities</dt><dd class="col-7"><?= e(implode(', ', $current['activities'])) ?></dd>
-            <dt class="col-5">Language Cert</dt><dd class="col-7"><?= $current['language_certificate'] ? 'Yes' : 'No' ?></dd>
+            <dt class="col-5">Language Cert</dt><dd class="col-7"><?= $current['has_language_cert'] ? 'Yes' : 'No' ?></dd>
           </dl>
 
           <div class="mt-3">

@@ -44,9 +44,39 @@ $stmt->execute([$studentId]);
 $results = $stmt->fetchAll();
 
 require_once __DIR__ . '/../includes/header.php';
-require_once __DIR__ . '/../includes/navbar.php';
+//require_once __DIR__ . '/../includes/navbar.php';
 ?>
+<?php require_once __DIR__ . '/../includes/student_header.php'; ?>
+<style>
+.student-page{
+    max-width:1400px;
+    margin:0 auto;
+    padding:32px;
+}
 
+.page-header{
+    margin-bottom:36px;
+}
+
+.page-title{
+    font-size:48px;
+    font-weight:800;
+    color:#0F172A;
+    margin-bottom:12px;
+    line-height:1.1;
+}
+
+.page-subtitle{
+    font-size:18px;
+    color:#64748B;
+    line-height:1.6;
+}
+
+.stats-grid{
+    margin-bottom:32px;
+}
+</style>
+<div class="student-page">
 <!-- Page Header -->
 <div class="page-header">
   <div class="page-header-left">
@@ -216,5 +246,5 @@ require_once __DIR__ . '/../includes/navbar.php';
   <?php endforeach; ?>
 
 <?php endif; ?>
-
+</div>
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

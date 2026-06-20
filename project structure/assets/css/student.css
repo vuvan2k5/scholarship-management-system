@@ -6,14 +6,15 @@
 
 /* ── CSS overrides scoped to student role ─────────────────── */
 body.role-student {
-    --student-blue:        #1D4ED8;
-    --student-blue-dark:   #1a44c2;
+    --student-blue: #1D4ED8;
+    --student-blue-dark: #1a44c2;
     --student-blue-deeper: #1638a8;
-    --student-blue-light:  #EFF6FF;
-    --student-blue-muted:  #BFDBFE;
-    --student-blue-glow:   0 4px 16px rgba(29, 78, 216, .30);
+    --student-blue-light: #EFF6FF;
+    --student-blue-muted: #BFDBFE;
+    --student-blue-glow: 0 4px 16px rgba(29, 78, 216, .30);
 
-    background: #f0f4ff;   /* subtle blue-tinted page background */
+    background: #f0f4ff;
+    /* subtle blue-tinted page background */
 }
 
 /* ── SIDEBAR ─────────────────────────────────────────────── */
@@ -379,4 +380,112 @@ body.role-student a:hover {
     body.role-student .sidebar {
         box-shadow: 4px 0 32px rgba(29, 78, 216, .35);
     }
+}
+
+/* =========================================================
+   NEW STUDENT HEADER
+   ========================================================= */
+
+.stu-header {
+    background: #fff;
+    border-bottom: 1px solid #dbeafe;
+    box-shadow: 0 2px 12px rgba(29, 78, 216, .08);
+}
+
+.stu-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    background: #0f172a;
+}
+
+.stu-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #fff !important;
+    text-decoration: none;
+}
+
+.stu-brand-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, .15);
+}
+
+.stu-brand-text {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.stu-brand-sub {
+    font-size: 12px;
+    opacity: .7;
+}
+
+.stu-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stu-role-badge {
+    background: #2563eb;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.stu-logout-btn {
+    background: #fff;
+    color: #dc2626 !important;
+    padding: 8px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.stu-nav {
+    display: flex;
+    gap: 8px;
+    padding: 12px 24px;
+    background: #1d4ed8;
+    overflow-x: auto;
+}
+
+.stu-nav-link {
+    color: #fff !important;
+    text-decoration: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.stu-nav-link:hover {
+    background: rgba(255, 255, 255, .15);
+}
+
+.stu-nav-link.active {
+    background: #fff;
+    color: #1d4ed8 !important;
+    font-weight: 700;
+}
+
+.stu-nav-badge {
+    background: #ef4444;
+    color: #fff;
+    border-radius: 999px;
+    padding: 2px 7px;
+    font-size: 11px;
 }

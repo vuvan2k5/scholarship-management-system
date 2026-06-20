@@ -1,8 +1,10 @@
 <?php
 $pageTitle = 'Mock Eligibility & Ranking Results';
 require_once __DIR__ . '/../includes/header.php';
-require_once __DIR__ . '/../includes/navbar.php';
+//require_once __DIR__ . '/../includes/navbar.php';
 require_once __DIR__ . '/mock_services.php';
+?>
+<?php require_once __DIR__ . '/../includes/student_header.php'; ?>
 
 $slots = isset($_GET['slots']) ? max(1,intval($_GET['slots'])) : 3;
 
@@ -50,7 +52,7 @@ $awardees = $data['awardees'];
             <td><?= e($r['failed_subjects']) ?></td>
             <td><?= e(count($r['activities'])) ?></td>
             <td><?= e(count($r['research_topics'])) ?></td>
-            <td><?= $r['language_certificate'] ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-secondary">No</span>' ?></td>
+            <td><?= $r['has_language_cert'] ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-secondary">No</span>' ?></td>
             <td>
               <?php if ($r['eligibility']['passed']): ?>
                 <span class="badge bg-success">Passed</span>

@@ -40,19 +40,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 require_once __DIR__ . '/../includes/header.php';
-require_once __DIR__ . '/../includes/navbar.php';
+//require_once __DIR__ . '/../includes/navbar.php';
 ?>
+<?php require_once __DIR__ . '/../includes/student_header.php'; ?>
+<style>
+.page-header-modern{
+    margin:32px 0 24px;
+}
 
-<div class="page-header">
-  <div class="page-header-left">
-    <h1 class="page-title">
-      <i class="bi bi-chat-dots me-2 text-primary"></i>Ask Admin
-    </h1>
-    <p class="page-subtitle">Send a question to the scholarship office. An administrator will respond through the system.</p>
-  </div>
-  <a href="notifications.php" class="btn btn-outline-secondary">
-    <i class="bi bi-bell me-1"></i>Notifications
-  </a>
+.page-title-modern{
+    font-size:38px;
+    font-weight:800;
+    color:#0F172A;
+    margin:0 0 10px;
+}
+
+.page-subtitle-modern{
+    font-size:16px;
+    color:#64748B;
+    margin:0;
+}
+
+.ask-admin-wrapper{
+    padding-left:55px;
+    padding-right:55px;
+}
+</style>
+
+<div class="ask-admin-wrapper">
+
+    <div class="page-header-modern">
+        <h1 class="page-title-modern">
+            Ask Admin
+        </h1>
+
+        <p class="page-subtitle-modern">
+            Send a question to the scholarship office. An administrator will respond through the system.
+        </p>
+    </div>
 </div>
 
 <?php showFlash(); ?>

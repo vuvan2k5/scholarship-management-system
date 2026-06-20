@@ -19,7 +19,7 @@ $ruleTypes = [
     'gpa'                  => 'GPA Requirement',
     'activities_count'     => 'Activity Requirement',
     'family_income'        => 'Income Requirement',
-    'language_certificate' => 'Language Certificate',
+    'has_language_cert' => 'Language Certificate',
     'research_count'       => 'Research Experience',
     'failed_subjects'      => 'Max Failed Subjects',
 ];

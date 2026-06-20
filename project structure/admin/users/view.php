@@ -250,7 +250,7 @@ $roleBadge = match($user['role']) {
                   </tr>
                   <tr>
                     <th>Language Certificate</th>
-                    <td><?= $profile['language_certificate'] ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-inactive">No</span>' ?></td>
+                    <td><?= $profile['has_language_cert'] ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-inactive">No</span>' ?></td>
                   </tr>
                   <tr>
                     <th>Disadvantaged</th>

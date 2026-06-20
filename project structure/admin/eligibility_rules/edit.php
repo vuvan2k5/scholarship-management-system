@@ -19,7 +19,7 @@ $ruleTypes = [
     'gpa'                  => 'GPA Requirement',
     'activities_count'     => 'Activity Requirement',
     'family_income'        => 'Income Requirement',
-    'language_certificate' => 'Language Certificate',
+    'has_language_cert' => 'Language Certificate',
     'research_count'       => 'Research Experience',
     'failed_subjects'      => 'Max Failed Subjects',
 ];
@@ -89,7 +89,7 @@ function ruleTypeLabel(string $type): string {
         'activity'             => 'Activity Requirement',
         'income'               => 'Income Requirement',
         'family_income'        => 'Income Requirement',
-        'language_certificate' => 'Language Certificate',
+        'has_language_cert' => 'Language Certificate',
         'language_cert'        => 'Language Certificate',
         'research'             => 'Research Experience',
         'research_count'       => 'Research Experience',

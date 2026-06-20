@@ -226,7 +226,7 @@ require_once '../../includes/navbar.php';
                   'Major'        => $profile['major'] ?? '—',
                   'Activities'   => ($profile['activities_count'] ?? 0).' acts.',
                   'Research'     => ($profile['research_count'] ?? 0).' papers',
-                  'Lang. Cert.'  => ($profile['language_certificate'] ?? 0) ? 'Yes' : 'No',
+                  'Lang. Cert.'  => ($profile['has_language_cert'] ?? 0) ? 'Yes' : 'No',
               ];
               foreach ($profileItems as $lbl => $val): ?>
                 <div style="background:var(--gray-50);border-radius:6px;padding:7px 10px;">

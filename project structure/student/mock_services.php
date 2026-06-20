@@ -6,7 +6,7 @@
 //   Prerequisite  : failed_subjects == 0  (No F grades)
 //   Mandatory cond: gpa >= 3.2
 //   Mandatory cond: count(activities) >= 2  (At least 2 extra-curricular activities)
-//   New condition : language_certificate == true  (Has language certificate)
+//   New condition : has_language_cert == true  (Has language certificate)
 //
 // SCORING (Board - 4 criteria, total 100 points):
 //   Academic (GPA)       : 50 points – GPA/4.0 * 50
@@ -66,7 +66,7 @@ function checkEligibilityMock(array $student): array
     }
 
     // ── 4. Language certificate ────────────────────────────────
-    if (empty($student['language_certificate'])) {
+    if (empty($student['has_language_cert'])) {
         $passed   = false;
         $reasons[] = 'No language certificate – this is a mandatory requirement.';
     }
@@ -97,7 +97,7 @@ function scoreStudentMock(array $student): array
     $gpa = min(max((float)($student['gpa'] ?? 0), 0.0), 4.0);
 
     $gpaScore  = round($gpa / 4.0 * SCORE_GPA_MAX, 2);
-    $langScore = !empty($student['language_certificate']) ? SCORE_LANG_MAX : 0.0;
+    $langScore = !empty($student['has_language_cert']) ? SCORE_LANG_MAX : 0.0;
 
     $actCount     = isset($student['activities']) ? count($student['activities']) : 0;
     $actScore     = min($actCount * SCORE_ACTIVITY_UNIT, SCORE_ACTIVITY_MAX);

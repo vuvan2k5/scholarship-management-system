@@ -105,8 +105,9 @@ $typeLabels = [
 ];
 
 require_once __DIR__ . '/../includes/header.php';
-require_once __DIR__ . '/../includes/navbar.php';
+//require_once __DIR__ . '/../includes/navbar.php';
 ?>
+<?php require_once __DIR__ . '/../includes/student_header.php'; ?>
 
 <div class="page-header">
   <div class="page-header-left">

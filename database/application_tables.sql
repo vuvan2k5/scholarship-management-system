@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS student_profiles (
     is_disadvantaged  TINYINT(1) DEFAULT 0 COMMENT '1=hoàn cảnh khó khăn',
     research_count    INT(11) DEFAULT 0 COMMENT 'Số công trình nghiên cứu',
     failed_subjects   INT(11) DEFAULT 0 COMMENT 'Số môn thi lại / trượt',
-    language_certificate TINYINT(1) DEFAULT 0 COMMENT '1=có chứng chỉ ngoại ngữ',
+    has_language_cert TINYINT(1) DEFAULT 0 COMMENT '1=có chứng chỉ ngoại ngữ',
     activities_list   TEXT DEFAULT NULL COMMENT 'JSON array danh sách hoạt động ngoại khóa',
     research_list     TEXT DEFAULT NULL COMMENT 'JSON array danh sách đề tài NCKH',
     created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -11,7 +11,8 @@ requireLogin();
 requireRole('student');
 
 require_once __DIR__ . '/../includes/header.php';
-require_once __DIR__ . '/../includes/navbar.php';
+// require_once __DIR__ . '/../includes/navbar.php';
+require_once __DIR__ . '/../includes/student_header.php';
 
 $pdo       = getDB();
 $studentId = currentUserId();
@@ -40,16 +41,46 @@ foreach ($rulesRows as $r) {
     $rulesMap[$r['program_id']][] = $r;
 }
 ?>
+<style>
+.page-header{
+    margin:32px 0 !important;
 
+    display:block !important;
+    width:100% !important;
+}
+
+.page-title{
+    display:block !important;
+    font-size:40px !important;
+    width:100% !important;
+}
+
+.page-subtitle{
+    display:block !important;
+    width:100% !important;
+
+    margin-top:12px !important;
+    max-width:850px;
+}
+.page-container{
+    max-width:1600px;
+    margin:0 auto;
+    padding:32px;
+}
+.page-header{
+    margin-top:36px;
+    margin-bottom:28px;
+}
+</style>
+<div class="page-container">
 <!-- Page Header -->
 <div class="page-header">
-  <div class="page-header-left">
-    <h1 class="page-title"><i class="bi bi-award me-2 text-primary"></i>Available Scholarships</h1>
-    <p class="page-subtitle">Browse and apply for scholarship programs open to students.</p>
-  </div>
-  <a href="apply.php" class="btn btn-primary">
-    <i class="bi bi-file-earmark-plus"></i> Quick Apply
-  </a>
+    <h1 class="page-title">Available Scholarships</h1>
+
+    <p class="page-subtitle">
+        Explore available scholarship opportunities, review eligibility requirements,
+        and submit your application before the deadline.
+    </p>
 </div>
 
 <?php showFlash(); ?>
@@ -192,7 +223,7 @@ foreach ($rulesRows as $r) {
                     'activities_count'=> 'Activities',
                     'failed_subjects' => 'Failed Subjects',
                     'research_projects'=> 'Research Projects',
-                    'language_certificate' => 'Language Certificate',
+                    'has_language_cert' => 'Language Certificate',
                 ];
                 $lbl = $labels[$rule['rule_type']] ?? ucfirst(str_replace('_', ' ', $rule['rule_type']));
                 ?>
@@ -227,6 +258,7 @@ foreach ($rulesRows as $r) {
     </div>
     <?php endforeach; ?>
   </div>
+</div>  
 <?php endif; ?>
 
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>

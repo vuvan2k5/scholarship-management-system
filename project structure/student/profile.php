@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $activities  = (int)($_POST['activities_count'] ?? 0);
         $research    = (int)($_POST['research_count']   ?? 0);
         $failed      = (int)($_POST['failed_subjects']  ?? 0);
-        $langCert    = isset($_POST['language_certificate']) ? 1 : 0;
+        $langCert    = isset($_POST['has_language_cert']) ? 1 : 0;
 
         // Activities list (textarea → array → count)
         $activitiesRaw  = trim($_POST['activities_list']  ?? '');
@@ -95,39 +95,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($gpa < 0 || $gpa > 4) $errors[] = 'GPA must be between 0.00 and 4.00.';
 
         if (empty($errors)) {
-            // Serialize lists as JSON for storage in TEXT columns
-            $activitiesJson = json_encode($activitiesList, JSON_UNESCAPED_UNICODE);
-            $researchJson   = json_encode($researchList,   JSON_UNESCAPED_UNICODE);
+if ($profile) {
+    $pdo->prepare("
+        UPDATE student_profiles
+SET faculty=?,
+    major=?,
+    gpa=?,
+    activities_count=?,
+    research_count=?,
+    failed_subjects=?,
+    has_language_cert=?
+WHERE student_id=?
+    ")->execute([
+        $faculty,
+    $major,
+    $gpa,
+    $activities,
+    $research,
+    $failed,
+    $langCert,
+    $studentId
+    ]);
+} else {
+    $pdo->prepare("
+        INSERT INTO student_profiles
+            (
+                student_id,
+                faculty,
+                major,
+                gpa,
+                activities_count,
+                research_count,
+                failed_subjects,
+                has_language_cert
+            )
+        VALUES (?,?,?,?,?,?,?,?)
+    ")->execute([
+        $studentId,
+        $faculty,
+        $major,
+        $gpa,
+        $activities,
+        $research,
+        $failed,
+        $langCert
+    ]);
+}
 
-            if ($profile) {
-                $pdo->prepare("
-                    UPDATE student_profiles
-                    SET faculty=?, major=?, gpa=?, activities_count=?, research_count=?,
-                        failed_subjects=?, language_certificate=?,
-                        activities_list=?, research_list=?
-                    WHERE student_id=?
-                ")->execute([
-                    $faculty, $major, $gpa, $activities, $research,
-                    $failed, $langCert,
-                    $activitiesJson, $researchJson,
-                    $studentId
-                ]);
-            } else {
-                $pdo->prepare("
-                    INSERT INTO student_profiles
-                        (student_id, faculty, major, gpa, activities_count, research_count,
-                         failed_subjects, language_certificate, activities_list, research_list)
-                    VALUES (?,?,?,?,?,?,?,?,?,?)
-                ")->execute([
-                    $studentId, $faculty, $major, $gpa, $activities, $research,
-                    $failed, $langCert,
-                    $activitiesJson, $researchJson
-                ]);
-            }
-            setFlash('success', 'Academic profile updated successfully.');
-            header('Location: profile.php');
-            exit;
-        }
+setFlash('success', 'Academic profile updated successfully.');
+header('Location: profile.php');
+exit;
+
+}
+
     }
 
     // Reload fresh data after error
@@ -138,16 +158,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 require_once __DIR__ . '/../includes/header.php';
-require_once __DIR__ . '/../includes/navbar.php';
+//require_once __DIR__ . '/../includes/navbar.php';
 ?>
+<?php require_once __DIR__ . '/../includes/student_header.php'; ?>
+<style>
+.page-header-modern{
+    margin:24px 0 18px;
+}
+
+.page-header-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+
+    padding:8px 14px;
+
+    background:#EFF6FF;
+    color:#2563EB;
+
+    border-radius:999px;
+
+    font-size:13px;
+    font-weight:700;
+
+    margin-bottom:16px;
+}
+
+.page-title-modern{
+    font-size:38px;
+    font-weight:800;
+    color:#0F172A;
+    margin:0 0 8px;
+    line-height:1.1;
+}
+
+.page-subtitle-modern{
+    max-width:700px;
+
+    color:#64748B;
+    font-size:18px;
+    line-height:1.7;
+
+    margin:0;
+}
+.container-fluid{
+    padding-left:40px !important;
+    padding-right:40px !important;
+}
+.profile-wrapper{
+    padding-left:40px;
+    padding-right:40px;
+}
+</style>
 
 <!-- Page Header -->
-<div class="page-header">
-  <div class="page-header-left">
-    <h1 class="page-title"><i class="bi bi-person-circle me-2 text-primary"></i>My Profile</h1>
-    <p class="page-subtitle">Manage your account information and academic details.</p>
-  </div>
-</div>
+<div class="container-fluid mt-4 mb-4" style="padding-left:40px;padding-right:40px;">
+
+    <div class="page-header-modern">
+        <h1 class="page-title-modern">
+            My Profile
+        </h1>
+
+        <p class="page-subtitle-modern">
+            Manage your account information, academic records, and personal details.
+        </p>
+    </div>
+
 
 <?php showFlash(); ?>
 
@@ -201,7 +277,7 @@ require_once __DIR__ . '/../includes/navbar.php';
         </div>
         <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f8fafc;">
           <span style="font-size:12px;color:#94a3b8;font-weight:600;">Language Cert</span>
-          <?php if (!empty($profile['language_certificate'])): ?>
+          <?php if (!empty($profile['has_language_cert'])): ?>
             <span class="badge badge-eligible" style="font-size:11px;">✓ Yes</span>
           <?php else: ?>
             <span class="badge badge-ineligible" style="font-size:11px;">✗ None</span>
@@ -280,7 +356,7 @@ require_once __DIR__ . '/../includes/navbar.php';
 
         <!-- Eligibility notice -->
         <?php if ($profile):
-          $langOk  = !empty($profile['language_certificate']);
+          $langOk  = !empty($profile['has_language_cert']);
           $failOk  = ($profile['failed_subjects'] ?? 0) == 0;
           $gpaOk   = ($profile['gpa'] ?? 0) >= 3.2;
           $actOk   = ($profile['activities_count'] ?? 0) >= 2;
@@ -373,9 +449,9 @@ require_once __DIR__ . '/../includes/navbar.php';
               </label>
               <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;"
                    onclick="document.getElementById('langCert').click()">
-                <input class="form-check-input" type="checkbox" name="language_certificate"
+                <input class="form-check-input" type="checkbox" name="has_language_cert"
                        id="langCert" value="1"
-                       <?= !empty($profile['language_certificate']) ? 'checked' : '' ?>
+                       <?= !empty($profile['has_language_cert']) ? 'checked' : '' ?>
                        style="width:18px;height:18px;cursor:pointer;flex-shrink:0;">
                 <label for="langCert" style="font-size:13px;color:#334155;cursor:pointer;margin:0;">
                   <i class="bi bi-translate me-1 text-primary"></i>

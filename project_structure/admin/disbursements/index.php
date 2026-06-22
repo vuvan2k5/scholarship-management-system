@@ -58,7 +58,7 @@ $disbursements = $pdo->query($sql)->fetchAll();
             <td>
               <div class="d-flex gap-2">
                 <a href="edit.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-warning btn-action"><i class="bi bi-pencil"></i> Edit</a>
-                <a href="delete.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-danger btn-action" onclick="return confirm('Delete this disbursement?')"><i class="bi bi-trash"></i> Delete</a>
+                
               </div>
             </td>
           </tr>

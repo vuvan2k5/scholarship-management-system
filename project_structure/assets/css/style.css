@@ -115,14 +115,12 @@ body {
 /* ── 5. SIDEBAR ───────────────────────────────────────────── */
 .sidebar {
     width: var(--sidebar-width);
-    height: 100vh;
-    /* thêm */
-    min-height: 100vh;
-    /* giữ nguyên */
+
 
     position: fixed;
     top: 0;
     left: 0;
+    bottom: 0;
 
     background: var(--gray-900);
     background: linear-gradient(180deg, #0f172a 0%, #111827 100%);

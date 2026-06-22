@@ -139,10 +139,10 @@ $roleBadge = match($user['role']) {
   </div>
 
   <!-- Right: Detail Panels -->
-  <div class="col-lg-8 d-flex flex-column gap-3">
+  <div class="col-lg-8">
 
     <!-- Account Information -->
-    <div class="card">
+    <div class="card mb-3">
       <div class="card-body">
         <div class="card-title mb-4" style="padding-bottom:12px;border-bottom:1px solid var(--gray-100);">
           <i class="bi bi-person-vcard me-2" style="color:var(--primary);"></i>Account Information
@@ -204,7 +204,7 @@ $roleBadge = match($user['role']) {
 
     <!-- Student Academic Profile (only for students) -->
     <?php if ($user['role'] === 'student'): ?>
-    <div class="card">
+    <div class="card mb-3">
       <div class="card-body">
         <div class="card-title mb-4" style="padding-bottom:12px;border-bottom:1px solid var(--gray-100);">
           <i class="bi bi-mortarboard me-2" style="color:var(--success);"></i>Academic Profile
@@ -244,10 +244,7 @@ $roleBadge = match($user['role']) {
             <div class="col-12">
               <table class="table detail-table mb-0">
                 <tbody>
-                  <tr>
-                    <th>Family Income</th>
-                    <td><?= $profile['family_income'] !== null ? number_format((float)$profile['family_income'], 0, ',', '.') . ' đ/month' : '—' ?></td>
-                  </tr>
+                 
                   <tr>
                     <th>Failed Subjects</th>
                     <td><?= (int)$profile['failed_subjects'] ?></td>
@@ -318,5 +315,5 @@ $roleBadge = match($user['role']) {
 
   </div><!-- /col-lg-8 -->
 </div>
-
+</div><!-- /container -->
 <?php require_once '../../includes/footer.php'; ?>
